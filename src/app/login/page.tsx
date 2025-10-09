@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Eye, EyeOff, Phone, Shield, CheckCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useLoginRequestOtpMutation } from "@/Redux/api/authApi";
 
 export default function LoginPage() {
   const [phone, setPhone] = useState("");
@@ -12,39 +13,40 @@ export default function LoginPage() {
   const [countryCode, setCountryCode] = useState("+91");
   const [showSuccess, setShowSuccess] = useState(false);
   const [errors, setErrors] = useState({ phone: "" });
-  const route=useRouter();
+  const router=useRouter();
+   const [loginRequestOtp] = useLoginRequestOtpMutation();
 
   const validatePhone = (number: string) => {
     const phoneRegex = /^\+?[1-9]\d{1,14}$/;
     return phoneRegex.test(number.replace(/\s/g, ""));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrors({ phone: "" });
 
-    const fullPhone = countryCode + phone.replace(/\D/g, "");
-    
-    if (!validatePhone(fullPhone)) {
-      setErrors({ phone: "Please enter a valid phone number" });
-      return;
-    }
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setErrors({ phone: "" });
 
-    setIsLoading(true);
+  const fullPhone = countryCode + phone.replace(/\D/g, "");
+  
+  if (!validatePhone(fullPhone)) {
+    setErrors({ phone: "Please enter a valid phone number" });
+    return;
+  }
+
+  setIsLoading(true);
+  
+  try {
+    const response = await loginRequestOtp({ phone: fullPhone }).unwrap();
     
-    // Simulate API call
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      console.log("Phone number submitted:", fullPhone);
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
-      route.push("/verify-otp");
-    } catch (error) {
-      setErrors({ phone: "Failed to send OTP. Please try again." });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    // Navigate to OTP verification with phone and type
+    router.push(`/verify-otp?phone=${encodeURIComponent(fullPhone)}&type=login`);
+    
+  } catch (error: any) {
+    setErrors({ phone: error?.data?.error || "Failed to send OTP. Please try again." });
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, "");

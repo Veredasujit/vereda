@@ -1,42 +1,91 @@
-// src/app/services/authApi.ts
 import { apiSlice } from "../apiSlice";
 
-// Helper: persist/remove token
+// Helpers for managing tokens (if applicable)
 const setToken = (token: string) => localStorage.setItem("token", token);
 const clearToken = () => localStorage.removeItem("token");
 
 export const authApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    // Login
-    login: builder.mutation<
-      { message: string; token: string; admin: any }, // Response
-      { phone: string; password: string }             // Request body
+    // ─────────────────────────────
+    // Signup: Request OTP
+    // ─────────────────────────────
+    signupRequestOtp: builder.mutation<
+      { message: string },                  // Response type
+      { phone: string;name:string }                     // Request body
     >({
       query: (body) => ({
-        url: "/admins/admins/login",
+        url: "auth/signup/request-otp",
         method: "POST",
         body,
       }),
-      invalidatesTags: ["Auth"],
+    }),
+
+    // ─────────────────────────────
+    // Signup: Verify OTP
+    // ─────────────────────────────
+    signupVerifyOtp: builder.mutation<
+      { message: string; token: string; user?: any }, // Response
+      { phone: string; otp: string ;name:string}                   // Request body
+    >({
+      query: (body) => ({
+        url: "auth/signup/verify-otp",
+        method: "POST",
+        body,
+      }),
       async onQueryStarted(_, { queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
-          if (data?.token) {
-            setToken(data.token);
-          }
+          if (data?.token) setToken(data.token);
         } catch {
           // ignore errors
         }
       },
     }),
 
+    // ─────────────────────────────
+    // Login: Request OTP
+    // ─────────────────────────────
+    loginRequestOtp: builder.mutation<
+      { message: string },
+      { phone: string }
+    >({
+      query: (body) => ({
+        url: "auth/login/request-otp",
+        method: "POST",
+        body,
+      }),
+    }),
+
+    // ─────────────────────────────
+    // Login: Verify OTP
+    // ─────────────────────────────
+    loginVerifyOtp: builder.mutation<
+      { message: string; token: string; user?: any },
+      { phone: string; otp: string }
+    >({
+      query: (body) => ({
+        url: "auth/login/verify-otp",
+        method: "POST",
+        body,
+      }),
+      async onQueryStarted(_, { queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          if (data?.token) setToken(data.token);
+        } catch {
+          // ignore errors
+        }
+      },
+    }),
+
+    // ─────────────────────────────
     // Logout
+    // ─────────────────────────────
     logout: builder.mutation<{ message: string }, void>({
       query: () => ({
-        url: "/admins/admins/logout", // if you don’t have logout API, you can just clear token
+        url: "/auth/logout", // optional: use your actual logout endpoint
         method: "POST",
       }),
-      invalidatesTags: ["Auth", "Profile"],
       async onQueryStarted(_, { queryFulfilled }) {
         try {
           await queryFulfilled;
@@ -50,5 +99,13 @@ export const authApi = apiSlice.injectEndpoints({
   overrideExisting: false,
 });
 
+// ─────────────────────────────
 // Hooks
-export const { useLoginMutation, useLogoutMutation } = authApi;
+// ─────────────────────────────
+export const {
+  useSignupRequestOtpMutation,
+  useSignupVerifyOtpMutation,
+  useLoginRequestOtpMutation,
+  useLoginVerifyOtpMutation,
+  useLogoutMutation,
+} = authApi;

@@ -4,7 +4,7 @@ import { store } from '../Redux/store';
 
 const url= process.env.NEXT_PUBLIC_API_URL;
 const API = axios.create({
-baseURL:`${url}/api`, // root API (auth -> /auth/*, posts -> /posts)
+baseURL:`${url}/api/v1/`, // root API (auth -> /auth/*, posts -> /posts)
 withCredentials: true, // set true if you use cookies
 });
 

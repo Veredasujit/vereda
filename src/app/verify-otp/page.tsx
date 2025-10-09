@@ -1,10 +1,13 @@
-// app/verify-otp/page.tsx (Next.js 13+ with App Router)
+// app/verify-otp/page.tsx
 "use client";
 
 import { useState, useRef, useEffect } from "react";
 import { Shield, Phone, ArrowLeft, CheckCircle, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useSignupVerifyOtpMutation, useLoginVerifyOtpMutation } from "@/Redux/api/authApi";
+import { useAppDispatch } from "@/Redux/store";
+import { setCredentials } from "@/Redux/slices/authSlice";
 
 export default function VerifyOtp() {
   const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
@@ -13,13 +16,26 @@ export default function VerifyOtp() {
   const [countdown, setCountdown] = useState(30);
   const [showSuccess, setShowSuccess] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [authType, setAuthType] = useState<"signup" | "login">("signup");
   
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const router = useRouter();
   const searchParams = useSearchParams();
+const dispatch = useAppDispatch();
+  // API mutations
+  const [signupVerifyOtp] = useSignupVerifyOtpMutation();
+  const [loginVerifyOtp] = useLoginVerifyOtpMutation();
 
-  // Get phone number from URL params or use a default
-  const phoneNumber = searchParams.get("phone") || "+1 (123) 456-7890";
+  // Get phone number and auth type from URL params
+  const phoneNumber = searchParams.get("phone") || "";
+  const type = searchParams.get("type") as "signup" | "login";
+  const username = searchParams.get("name")||"Username";
+
+  useEffect(() => {
+    if (type) {
+      setAuthType(type);
+    }
+  }, [type]);
 
   useEffect(() => {
     if (countdown > 0) {
@@ -41,18 +57,16 @@ export default function VerifyOtp() {
   };
 
   const handleOtpChange = (index: number, value: string) => {
-    if (!/^\d*$/.test(value)) return; // Only allow numbers
+    if (!/^\d*$/.test(value)) return;
 
     const newOtp = [...otp];
     newOtp[index] = value;
     setOtp(newOtp);
 
-    // Clear any existing OTP errors when user types
     if (errors.otp) {
       setErrors(prev => ({ ...prev, otp: "" }));
     }
 
-    // Auto-focus next input
     if (value !== "" && index < 5) {
       focusNextInput(index);
     }
@@ -80,7 +94,6 @@ export default function VerifyOtp() {
       });
       setOtp(newOtp);
       
-      // Focus the last filled input or the last one
       const lastFilledIndex = Math.min(pastedData.length - 1, 5);
       inputRefs.current[lastFilledIndex]?.focus();
     }
@@ -91,11 +104,10 @@ export default function VerifyOtp() {
 
     setIsResending(true);
     try {
-      // Simulate API call to resend OTP
+      // In a real app, you would call the resend OTP API here
       await new Promise(resolve => setTimeout(resolve, 1000));
       setCountdown(30);
       setErrors({});
-      // Clear existing OTP
       setOtp(["", "", "", "", "", ""]);
       inputRefs.current[0]?.focus();
     } catch (error) {
@@ -124,13 +136,28 @@ export default function VerifyOtp() {
     setIsLoading(true);
 
     try {
-      // Simulate API verification
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      let response;
       
-      // For demo purposes, accept any OTP that's 6 digits
-      // In real app, you'd verify against the backend
-      console.log("Verifying OTP:", otpString);
-      
+      if (authType === "signup") {
+        // For signup, you might need to pass name as well
+        // You'll need to get this from your state or params
+        response = await signupVerifyOtp({
+          phone: phoneNumber.replace(/\D/g, ""),
+          otp: otpString,
+          name: username 
+        }).unwrap();
+      } else {
+        // For login
+        response = await loginVerifyOtp({
+          phone: phoneNumber.replace(/\D/g, ""),
+          otp: otpString
+        }).unwrap();
+      }
+  // Dispatch to Redux store
+    dispatch(setCredentials({
+      user: response.user,   // assuming response has `user`
+      token: response.token, // assuming response has `token`
+    }));
       setShowSuccess(true);
       
       // Redirect to dashboard after success
@@ -138,8 +165,10 @@ export default function VerifyOtp() {
         router.push("/");
       }, 2000);
       
-    } catch (error) {
-      setErrors({ verify: "Verification failed. Please try again." });
+    } catch (error: any) {
+      setErrors({ 
+        verify: error?.data?.error || "Verification failed. Please try again." 
+      });
     } finally {
       setIsLoading(false);
     }
@@ -159,7 +188,7 @@ export default function VerifyOtp() {
           </div>
           <h2 className="text-2xl font-bold text-gray-800 mb-2">Verification Successful!</h2>
           <p className="text-gray-600 mb-4">
-            Your phone number has been verified successfully.
+            {authType === "signup" ? "Your account has been created successfully!" : "You have been logged in successfully!"}
           </p>
           <div className="animate-pulse text-sm text-gray-500">
             Redirecting to Home...
@@ -176,7 +205,7 @@ export default function VerifyOtp() {
         <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10"></div>
         <div className="relative z-10 text-center max-w-lg">
           <img
-            src="/images/veredalogin.webp" // Replace with your OTP illustration
+            src="/images/veredalogin.webp"
             alt="OTP Verification Illustration"
             className="w-full max-w-md mx-auto mb-8 transform hover:scale-105 transition-transform duration-500"
           />
@@ -185,7 +214,7 @@ export default function VerifyOtp() {
               Secure Verification
             </h3>
             <p className="text-gray-600 mb-4">
-              Enter the 6-digit code sent to your phone to complete your account verification
+              Enter the 6-digit code sent to your phone to complete your {authType === "signup" ? "registration" : "login"}
             </p>
             <div className="flex justify-center space-x-6 text-sm text-gray-500">
               <div className="flex items-center">
@@ -212,7 +241,7 @@ export default function VerifyOtp() {
           {/* Header with Back Button */}
           <div className="flex items-center mb-6">
             <Link
-              href="/register"
+              href={authType === "signup" ? "/register" : "/login"}
               className="flex items-center text-gray-600 hover:text-gray-800 transition-colors mr-4"
             >
               <ArrowLeft className="w-5 h-5" />
@@ -237,6 +266,9 @@ export default function VerifyOtp() {
               <Phone className="w-5 h-5 text-green-600" />
               <span>{phoneNumber}</span>
             </div>
+            <p className="text-sm text-gray-500 mt-2">
+              {authType === "signup" ? "Completing your registration..." : "Logging you in..."}
+            </p>
           </div>
 
           <form onSubmit={handleVerifyOtp} className="space-y-6">
@@ -367,7 +399,7 @@ export default function VerifyOtp() {
                 Make sure you have good network connection
               </p>
               <Link
-                href="/register"
+                href={authType === "signup" ? "/register" : "/login"}
                 className="inline-block text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
               >
                 Use different phone number
@@ -390,15 +422,8 @@ export default function VerifyOtp() {
           0%, 100% { transform: translateY(0px); }
           50% { transform: translateY(-20px); }
         }
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
         .animate-float {
           animation: float 6s ease-in-out infinite;
-        }
-        .animate-fadeIn {
-          animation: fadeIn 0.5s ease-out;
         }
         
         /* Hide number input arrows */

@@ -5,11 +5,8 @@ type User = {
   id: string;
   name: string;
   phone: string;
-  email?: string;
   // add more fields if your backend sends them
 };
-
-
 
 interface AuthState {
   user: User | null;
@@ -18,12 +15,16 @@ interface AuthState {
   loading: boolean;
 }
 
+// SSR-safe initial state
 const initialState: AuthState = {
-  user: localStorage.getItem("user")
-    ? JSON.parse(localStorage.getItem("user") as string)
-    : null,
-  token: localStorage.getItem("token"),
-  isAuthenticated: !!localStorage.getItem("token"),
+  user:
+    typeof window !== "undefined" && localStorage.getItem("user")
+      ? JSON.parse(localStorage.getItem("user") as string)
+      : null,
+  token:
+    typeof window !== "undefined" ? localStorage.getItem("token") : null,
+  isAuthenticated:
+    typeof window !== "undefined" && !!localStorage.getItem("token"),
   loading: false,
 };
 
@@ -40,19 +41,25 @@ const authSlice = createSlice({
       state.token = token;
       state.isAuthenticated = true;
 
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
+      if (typeof window !== "undefined") {
+        localStorage.setItem("token", token);
+        localStorage.setItem("user", JSON.stringify(user));
+      }
     },
     setUser: (state, action: PayloadAction<User>) => {
       state.user = action.payload;
-      localStorage.setItem("user", JSON.stringify(action.payload));
+      if (typeof window !== "undefined") {
+        localStorage.setItem("user", JSON.stringify(action.payload));
+      }
     },
     logout: (state) => {
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+      }
     },
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.loading = action.payload;

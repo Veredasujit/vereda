@@ -3,28 +3,169 @@
 import { motion, Variants } from 'framer-motion';
 import { useState, useMemo } from 'react';
 import { Search, Filter, X, Star, Clock, Users, BookOpen, Zap, Smartphone, Brain } from 'lucide-react';
+import { useGetAllCoursesQuery } from '../../Redux/api/coursesApi'; // Update the import path
 
+// Interface based on your actual API response
 interface Course {
-  id: number;
+  id: string;
   title: string;
-  imageURL: string;
+  courseImageURL: string;
+  description: string;
+  price: string; // Note: price comes as string from API
+  instructorId: string;
+  courseDuration: string;
+  status: 'coming_soon' | 'live' | 'expired';
+  availableSeat: number;
+  courseRatings: number;
+  usersLearn: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Extended interface for UI
+interface UICourse extends Course {
+  // Derived fields for UI
   category: 'Flutter' | 'AI & Machine Learning';
+  level: 'Beginner' | 'Intermediate' | 'Advanced';
+  tags: string[];
   originalPrice: number;
   discountedPrice: number;
   discountPercentage: number;
   programName: string;
-  batchStatus: 'Coming Soon' | 'Ongoing' | 'Starting Soon';
-  instructor: string;
-  availableSeats: number;
+  batchStatus: 'Coming Soon' | 'Ongoing' | 'Starting Soon' | 'Expired';
+  instructor: { name: string };
   totalSeats: number;
   icon: string;
   bgGradient: string;
-  rating: number;
-  duration: string;
-  level: 'Beginner' | 'Intermediate' | 'Advanced';
-  tags: string[];
   popularity: 'High' | 'Medium' | 'Low';
 }
+
+// Helper functions - defined outside the component
+const determineCategory = (course: Course): 'Flutter' | 'AI & Machine Learning' => {
+  const title = course.title.toLowerCase();
+  const description = course.description.toLowerCase();
+  
+  if (title.includes('flutter') || description.includes('flutter') || 
+      title.includes('mobile') || description.includes('mobile') ||
+      title.includes('dart')) {
+    return 'Flutter';
+  }
+  
+  if (title.includes('ai') || title.includes('machine learning') || title.includes('ml') ||
+      description.includes('ai') || description.includes('machine learning') || 
+      description.includes('neural') || description.includes('tensorflow') ||
+      description.includes('pytorch')) {
+    return 'AI & Machine Learning';
+  }
+  
+  // Default based on common patterns in your data
+  return 'Flutter';
+};
+
+const determineLevel = (course: Course): 'Beginner' | 'Intermediate' | 'Advanced' => {
+  const title = course.title.toLowerCase();
+  const description = course.description.toLowerCase();
+  
+  if (title.includes('advanced') || description.includes('advanced') ||
+      description.includes('deep dive') || description.includes('mastery')) {
+    return 'Advanced';
+  }
+  
+  if (title.includes('intermediate') || description.includes('intermediate') ||
+      title.includes('pro') || description.includes('proficient')) {
+    return 'Intermediate';
+  }
+  
+  return 'Beginner';
+};
+
+const getCourseTags = (course: Course): string[] => {
+  const tags: string[] = [];
+  const content = (course.title + ' ' + course.description).toLowerCase();
+  
+  // JavaScript related tags
+  if (content.includes('javascript') || content.includes('js')) {
+    tags.push('JavaScript');
+    if (content.includes('closure')) tags.push('Closures');
+    if (content.includes('async') || content.includes('await')) tags.push('Async/Await');
+    if (content.includes('es6') || content.includes('esnext')) tags.push('ES6+');
+  }
+  
+  // Flutter related tags
+  if (content.includes('flutter') || content.includes('dart')) {
+    tags.push('Flutter', 'Dart');
+    if (content.includes('widget')) tags.push('Widgets');
+    if (content.includes('ui')) tags.push('UI/UX');
+  }
+  
+  // AI/ML related tags
+  if (content.includes('ai') || content.includes('machine learning')) {
+    tags.push('AI/ML');
+    if (content.includes('neural')) tags.push('Neural Networks');
+    if (content.includes('tensorflow')) tags.push('TensorFlow');
+    if (content.includes('pytorch')) tags.push('PyTorch');
+  }
+  
+  // Add level-based tags
+  const level = determineLevel(course);
+  tags.push(level);
+  
+  return tags.length > 0 ? tags : ['Programming', 'Development'];
+};
+
+const calculateOriginalPrice = (discountedPrice: number): number => {
+  // Add 30-50% to create an "original price"
+  const multiplier = 1 + (Math.random() * 0.5) + 0.3; // 30-80% markup
+  return Math.round(discountedPrice * multiplier);
+};
+
+const calculateDiscountPercentage = (originalPrice: number, discountedPrice: number): number => {
+  return Math.round(((originalPrice - discountedPrice) / originalPrice) * 100);
+};
+
+const mapStatusToBatchStatus = (status: string): 'Coming Soon' | 'Ongoing' | 'Starting Soon' | 'Expired' => {
+  switch (status) {
+    case 'coming_soon': return 'Coming Soon';
+    case 'live': return 'Ongoing';
+    case 'expired': return 'Expired';
+    default: return 'Starting Soon';
+  }
+};
+
+const getInstructorName = (instructorId: string): string => {
+  // You'll need to implement this based on your instructor data
+  // For now, return a placeholder
+  const instructorNames = [
+    'Himanshu Kumar', 
+    'Alex Johnson', 
+    'Dr. Sarah Chen', 
+    'Emily Davis',
+    'Raj Patel'
+  ];
+  return instructorNames[Math.floor(Math.random() * instructorNames.length)];
+};
+
+const getCategoryIcon = (category: string): string => {
+  switch (category) {
+    case 'Flutter': return '📱';
+    case 'AI & Machine Learning': return '🤖';
+    default: return '📚';
+  }
+};
+
+const getCategoryGradient = (category: string): string => {
+  switch (category) {
+    case 'Flutter': return 'from-green-500 to-teal-600';
+    case 'AI & Machine Learning': return 'from-purple-500 to-indigo-600';
+    default: return 'from-blue-500 to-cyan-600';
+  }
+};
+
+const calculatePopularity = (course: Course): 'High' | 'Medium' | 'Low' => {
+  if (course.usersLearn > 100 || course.courseRatings > 4.5) return 'High';
+  if (course.usersLearn > 50 || course.courseRatings > 4.0) return 'Medium';
+  return 'Low';
+};
 
 export default function ViewCourses() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -33,151 +174,75 @@ export default function ViewCourses() {
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 50000]);
   const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState('popular');
-  const [selectedStatus, setSelectedStatus] = useState('All');
+  const [selectedStatus, setSelectedStatus] = useState<'All' | 'coming_soon' | 'live' | 'expired'>('All');
 
-  const courses: Course[] = [
-    {
-      id: 1,
-      title: 'Flutter Mobile Development Pro',
-      imageURL: 'https://vereda.co.in/build/assets/Flutter-App-development.1a92db99.webp',
-      category: 'Flutter',
-      originalPrice: 45000,
-      discountedPrice: 10000,
-      discountPercentage: 77,
-      programName: 'Flutter Development Master Program',
-      batchStatus: 'Coming Soon',
-      instructor: 'Himanshu Kumar',
-      availableSeats: 9,
-      totalSeats: 10,
-      icon: '📱',
-      bgGradient: 'from-green-500 to-teal-600',
-      rating: 4.6,
-      duration: '10 weeks',
-      level: 'Beginner',
-      tags: ['Dart', 'Flutter', 'Firebase', 'UI/UX', 'REST API', 'State Management'],
-      popularity: 'High'
-    },
-    {
-      id: 2,
-      title: 'Advanced Flutter with Firebase',
-      imageURL: 'https://images.unsplash.com/photo-1551650975-87deedd944c3?w=500',
-      category: 'Flutter',
-      originalPrice: 35000,
-      discountedPrice: 25000,
-      discountPercentage: 28,
-      programName: 'Advanced Flutter Development',
-      batchStatus: 'Ongoing',
-      instructor: 'Alex Johnson',
-      availableSeats: 3,
-      totalSeats: 12,
-      icon: '🔥',
-      bgGradient: 'from-orange-500 to-red-600',
-      rating: 4.8,
-      duration: '8 weeks',
-      level: 'Intermediate',
-      tags: ['Firebase', 'Cloud Firestore', 'Authentication', 'Cloud Functions'],
-      popularity: 'High'
-    },
-    {
-      id: 3,
-      title: 'AI & Machine Learning Fundamentals',
-      imageURL: 'https://images.unsplash.com/photo-1555255707-c07966088b7b?w=500',
-      category: 'AI & Machine Learning',
-      originalPrice: 50000,
-      discountedPrice: 35000,
-      discountPercentage: 30,
-      programName: 'AI Machine Learning Professional Program',
-      batchStatus: 'Ongoing',
-      instructor: 'Dr. Sarah Chen',
-      availableSeats: 5,
-      totalSeats: 15,
-      icon: '🤖',
-      bgGradient: 'from-purple-500 to-indigo-600',
-      rating: 4.9,
-      duration: '16 weeks',
-      level: 'Intermediate',
-      tags: ['Python', 'TensorFlow', 'Neural Networks', 'Data Analysis'],
-      popularity: 'High'
-    },
-    {
-      id: 4,
-      title: 'Deep Learning Specialization',
-      imageURL: 'https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=500',
-      category: 'AI & Machine Learning',
-      originalPrice: 60000,
-      discountedPrice: 42000,
-      discountPercentage: 30,
-      programName: 'Deep Learning Advanced Program',
-      batchStatus: 'Starting Soon',
-      instructor: 'Dr. Michael Rodriguez',
-      availableSeats: 8,
-      totalSeats: 15,
-      icon: '🧠',
-      bgGradient: 'from-blue-500 to-cyan-600',
-      rating: 4.7,
-      duration: '14 weeks',
-      level: 'Advanced',
-      tags: ['PyTorch', 'CNN', 'RNN', 'Computer Vision', 'NLP'],
-      popularity: 'Medium'
-    },
-    {
-      id: 5,
-      title: 'Flutter UI/UX Masterclass',
-      imageURL: 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?w=500',
-      category: 'Flutter',
-      originalPrice: 28000,
-      discountedPrice: 19000,
-      discountPercentage: 32,
-      programName: 'Flutter UI/UX Design Program',
-      batchStatus: 'Starting Soon',
-      instructor: 'Emily Davis',
-      availableSeats: 12,
-      totalSeats: 20,
-      icon: '🎨',
-      bgGradient: 'from-pink-500 to-rose-600',
-      rating: 4.5,
-      duration: '6 weeks',
-      level: 'Beginner',
-      tags: ['UI Design', 'Animations', 'Custom Widgets', 'Material Design'],
-      popularity: 'Medium'
-    },
-    {
-      id: 6,
-      title: 'AI for Mobile Apps',
-      imageURL: 'https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?w=500',
-      category: 'AI & Machine Learning',
-      originalPrice: 40000,
-      discountedPrice: 28000,
-      discountPercentage: 30,
-      programName: 'AI Integration in Mobile Applications',
-      batchStatus: 'Coming Soon',
-      instructor: 'Raj Patel',
-      availableSeats: 15,
-      totalSeats: 20,
-      icon: '📲',
-      bgGradient: 'from-yellow-500 to-orange-600',
-      rating: 4.4,
-      duration: '12 weeks',
-      level: 'Intermediate',
-      tags: ['ML Kit', 'TensorFlow Lite', 'Mobile AI', 'On-device ML'],
-      popularity: 'Medium'
+  // Use the RTK Query hook to fetch courses
+  const { data: coursesData, isLoading, error } = useGetAllCoursesQuery();
+
+  console.log("my course data are ", coursesData);
+
+  // Transform the API data to match the component's needs
+  const courses: UICourse[] = useMemo(() => {
+    if (!coursesData || !Array.isArray(coursesData)) {
+      console.log("No courses data or invalid format");
+      return [];
     }
-  ];
+    
+    console.log("Processing courses:", coursesData);
+
+    return coursesData.map((course: Course) => {
+      // Determine category based on title or description
+      const category = determineCategory(course);
+      
+      // Determine level based on course content
+      const level = determineLevel(course);
+      
+      // Get tags based on course content
+      const tags = getCourseTags(course);
+      
+      // Calculate pricing (you might want to adjust this logic)
+      const discountedPrice = parseFloat(course.price);
+      const originalPrice = calculateOriginalPrice(discountedPrice);
+      const discountPercentage = calculateDiscountPercentage(originalPrice, discountedPrice);
+      
+      // Calculate total seats (available + enrolled)
+      const totalSeats = course.availableSeat + course.usersLearn;
+      
+      return {
+        ...course,
+        category,
+        level,
+        tags,
+        originalPrice,
+        discountedPrice,
+        discountPercentage,
+        programName: course.title,
+        batchStatus: mapStatusToBatchStatus(course.status),
+        instructor: { name: getInstructorName(course.instructorId) },
+        totalSeats,
+        icon: getCategoryIcon(category),
+        bgGradient: getCategoryGradient(category),
+        popularity: calculatePopularity(course)
+      };
+    });
+  }, [coursesData]);
 
   const categories = ['All', 'Flutter', 'AI & Machine Learning'];
   const levels = ['All', 'Beginner', 'Intermediate', 'Advanced'];
-  const statuses = ['All', 'Coming Soon', 'Ongoing', 'Starting Soon'];
+  const statuses = ['All', 'coming_soon', 'live', 'expired'] as const;
 
   // Filter and sort courses
   const filteredCourses = useMemo(() => {
+    if (!courses || courses.length === 0) return [];
+
     let filtered = courses.filter(course => {
       const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          course.instructor.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          course.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           course.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
       
       const matchesCategory = selectedCategory === 'All' || course.category === selectedCategory;
       const matchesLevel = selectedLevel === 'All' || course.level === selectedLevel;
-      const matchesStatus = selectedStatus === 'All' || course.batchStatus === selectedStatus;
+      const matchesStatus = selectedStatus === 'All' || course.status === selectedStatus;
       const matchesPrice = course.discountedPrice >= priceRange[0] && course.discountedPrice <= priceRange[1];
 
       return matchesSearch && matchesCategory && matchesLevel && matchesStatus && matchesPrice;
@@ -192,13 +257,17 @@ export default function ViewCourses() {
         filtered.sort((a, b) => b.discountedPrice - a.discountedPrice);
         break;
       case 'rating':
-        filtered.sort((a, b) => b.rating - a.rating);
+        filtered.sort((a, b) => b.courseRatings - a.courseRatings);
         break;
       case 'duration':
-        filtered.sort((a, b) => parseInt(a.duration) - parseInt(b.duration));
+        filtered.sort((a, b) => {
+          const aDuration = parseInt(a.courseDuration) || 0;
+          const bDuration = parseInt(b.courseDuration) || 0;
+          return aDuration - bDuration;
+        });
         break;
       case 'seats':
-        filtered.sort((a, b) => a.availableSeats - b.availableSeats);
+        filtered.sort((a, b) => a.availableSeat - b.availableSeat);
         break;
       default:
         // Popular (default)
@@ -209,7 +278,7 @@ export default function ViewCourses() {
     }
 
     return filtered;
-  }, [searchTerm, selectedCategory, selectedLevel, selectedStatus, priceRange, sortBy]);
+  }, [courses, searchTerm, selectedCategory, selectedLevel, selectedStatus, priceRange, sortBy]);
 
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
@@ -245,7 +314,7 @@ export default function ViewCourses() {
     priceRange[0] > 0 || priceRange[1] < 50000
   ].filter(Boolean).length;
 
-  const getCategoryIcon = (category: string) => {
+  const getCategoryIconComponent = (category: string) => {
     switch (category) {
       case 'Flutter':
         return <Smartphone className="w-5 h-5" />;
@@ -258,16 +327,50 @@ export default function ViewCourses() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Ongoing':
+      case 'live':
         return 'bg-green-100 text-green-800';
-      case 'Starting Soon':
+      case 'coming_soon':
         return 'bg-blue-100 text-blue-800';
-      case 'Coming Soon':
-        return 'bg-yellow-100 text-yellow-800';
+      case 'expired':
+        return 'bg-red-100 text-red-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
   };
+
+  const getStatusDisplayText = (status: string) => {
+    switch (status) {
+      case 'live': return 'Ongoing';
+      case 'coming_soon': return 'Coming Soon';
+      case 'expired': return 'Expired';
+      default: return status;
+    }
+  };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <section className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-12">
+        <div className="container mx-auto px-4 text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-xl text-gray-600">Loading courses...</p>
+        </div>
+      </section>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <section className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-12">
+        <div className="container mx-auto px-4 text-center">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded max-w-md mx-auto">
+            <p>Error loading courses. Please try again later.</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-12">
@@ -335,7 +438,7 @@ export default function ViewCourses() {
               </div>
               <div>
                 <h4 className="text-2xl font-bold text-gray-900">
-                  {courses.reduce((acc, course) => acc + (course.totalSeats - course.availableSeats), 0)}
+                  {courses.reduce((acc, course) => acc + course.usersLearn, 0)}
                 </h4>
                 <p className="text-gray-600">Students Enrolled</p>
               </div>
@@ -456,12 +559,14 @@ export default function ViewCourses() {
                   </label>
                   <select
                     value={selectedStatus}
-                    onChange={(e) => setSelectedStatus(e.target.value)}
+                    onChange={(e) => setSelectedStatus(e.target.value as any)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     {statuses.map(status => (
                       <option key={status} value={status}>
-                        {status}
+                        {status === 'live' ? 'Ongoing' : 
+                         status === 'coming_soon' ? 'Coming Soon' : 
+                         status === 'expired' ? 'Expired' : 'All'}
                       </option>
                     ))}
                   </select>
@@ -535,7 +640,7 @@ export default function ViewCourses() {
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                {getCategoryIcon(category)}
+                {getCategoryIconComponent(category)}
                 {category}
               </button>
             ))}
@@ -561,7 +666,7 @@ export default function ViewCourses() {
                 {/* Course Image with Badges */}
                 <div className="relative h-48 overflow-hidden">
                   <img
-                    src={course.imageURL}
+                    src={course.courseImageURL || '/api/placeholder/400/200'}
                     alt={course.title}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   />
@@ -569,8 +674,8 @@ export default function ViewCourses() {
                     <span className={`bg-gradient-to-r ${course.bgGradient} text-white px-3 py-1 rounded-full text-sm font-semibold`}>
                       {course.level}
                     </span>
-                    <span className={`${getStatusColor(course.batchStatus)} px-3 py-1 rounded-full text-sm font-semibold`}>
-                      {course.batchStatus}
+                    <span className={`${getStatusColor(course.status)} px-3 py-1 rounded-full text-sm font-semibold`}>
+                      {getStatusDisplayText(course.status)}
                     </span>
                   </div>
                   <div className="absolute top-4 right-4">
@@ -594,7 +699,7 @@ export default function ViewCourses() {
                   {/* Category and Rating */}
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      {getCategoryIcon(course.category)}
+                      {getCategoryIconComponent(course.category)}
                       <span className={`text-sm font-semibold ${
                         course.category === 'Flutter' ? 'text-green-600' : 'text-purple-600'
                       }`}>
@@ -604,17 +709,17 @@ export default function ViewCourses() {
                     <div className="flex items-center gap-1">
                       <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                       <span className="text-sm font-semibold text-gray-700">
-                        {course.rating}
+                        {course.courseRatings}
                       </span>
                     </div>
                   </div>
 
-                  {/* Title and Instructor */}
+                  {/* Title and Description */}
                   <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2">
                     {course.title}
                   </h3>
                   <p className="text-gray-600 mb-4 line-clamp-2">
-                    {course.programName}
+                    {course.description}
                   </p>
 
                   {/* Instructor */}
@@ -624,13 +729,13 @@ export default function ViewCourses() {
                         ? 'from-green-500 to-teal-600' 
                         : 'from-purple-500 to-indigo-600'
                     } rounded-full flex items-center justify-center text-white text-xs font-bold`}>
-                      {course.instructor
+                      {course.instructor.name
                         .split(' ')
                         .map((n) => n[0])
                         .join('')}
                     </div>
                     <span className="text-sm font-medium text-gray-700">
-                      {course.instructor}
+                      {course.instructor.name}
                     </span>
                   </div>
 
@@ -638,48 +743,50 @@ export default function ViewCourses() {
                   <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
                     <div className="flex items-center gap-1">
                       <Clock className="w-4 h-4" />
-                      <span>{course.duration}</span>
+                      <span>{course.courseDuration}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <Users className="w-4 h-4" />
-                      <span>{course.availableSeats}/{course.totalSeats} seats</span>
+                      <span>{course.availableSeat} seats left • {course.usersLearn} enrolled</span>
                     </div>
                   </div>
 
                   {/* Tags */}
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {course.tags.slice(0, 3).map((tag, index) => (
-                      <span
-                        key={index}
-                        className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                    {course.tags.length > 3 && (
-                      <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
-                        +{course.tags.length - 3} more
-                      </span>
-                    )}
-                  </div>
+                  {course.tags && course.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {course.tags.slice(0, 3).map((tag, index) => (
+                        <span
+                          key={index}
+                          className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                      {course.tags.length > 3 && (
+                        <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
+                          +{course.tags.length - 3} more
+                        </span>
+                      )}
+                    </div>
+                  )}
 
                   {/* Progress Bar */}
                   <div className="mb-4">
                     <div className="flex items-center justify-between text-sm mb-1">
                       <span className="text-gray-600">Seats Filled</span>
                       <span className="font-semibold text-gray-800">
-                        {Math.round(((course.totalSeats - course.availableSeats) / course.totalSeats) * 100)}%
+                        {Math.round(((course.totalSeats - course.availableSeat) / course.totalSeats) * 100)}%
                       </span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
                       <motion.div
                         className={`h-2 rounded-full ${
-                          course.availableSeats < 5 ? 'bg-red-500' : 
-                          course.availableSeats < 10 ? 'bg-yellow-500' : 'bg-green-500'
+                          course.availableSeat < 5 ? 'bg-red-500' : 
+                          course.availableSeat < 10 ? 'bg-yellow-500' : 'bg-green-500'
                         }`}
                         initial={{ width: 0 }}
                         whileInView={{
-                          width: `${((course.totalSeats - course.availableSeats) / course.totalSeats) * 100}%`
+                          width: `${((course.totalSeats - course.availableSeat) / course.totalSeats) * 100}%`
                         }}
                         transition={{ duration: 1, delay: 0.2 }}
                       />
@@ -726,17 +833,21 @@ export default function ViewCourses() {
                 <Search className="w-10 h-10 text-gray-400" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                No courses found
+                {courses.length === 0 ? 'No courses available' : 'No courses found'}
               </h3>
               <p className="text-gray-600 mb-6">
-                Try adjusting your search criteria or filters to find more Flutter or AI courses.
+                {courses.length === 0 
+                  ? 'Check back later for new Flutter and AI courses.' 
+                  : 'Try adjusting your search criteria or filters to find more courses.'}
               </p>
-              <button
-                onClick={clearFilters}
-                className="bg-gradient-to-r from-green-600 to-purple-600 text-white font-semibold py-3 px-8 rounded-xl hover:from-green-700 hover:to-purple-700 transition-colors"
-              >
-                Clear All Filters
-              </button>
+              {courses.length > 0 && (
+                <button
+                  onClick={clearFilters}
+                  className="bg-gradient-to-r from-green-600 to-purple-600 text-white font-semibold py-3 px-8 rounded-xl hover:from-green-700 hover:to-purple-700 transition-colors"
+                >
+                  Clear All Filters
+                </button>
+              )}
             </div>
           </motion.div>
         )}

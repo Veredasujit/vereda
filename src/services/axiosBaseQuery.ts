@@ -3,7 +3,7 @@ import type { AxiosError, AxiosRequestConfig } from 'axios';
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL + '/api',
+  baseURL: process.env.NEXT_PUBLIC_API_URL + '/api/v1/',
   withCredentials: true,
 });
 

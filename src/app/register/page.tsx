@@ -4,6 +4,8 @@
 import { useState } from "react";
 import { Phone, Shield, User, CheckCircle, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { useSignupRequestOtpMutation } from "@/Redux/api/authApi";
+import { useRouter } from "next/navigation";
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -16,6 +18,8 @@ export default function Register() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [signupRequestOtp] = useSignupRequestOtpMutation();
+  const router = useRouter();
 
   const countryCodes = [
     { code: "+91", country: "IN" },
@@ -72,26 +76,37 @@ export default function Register() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateStep(2)) return;
+  e.preventDefault();
+  
+  if (!validateStep(2)) return;
 
-    setIsLoading(true);
+  setIsLoading(true);
+  
+  try {
+    const fullPhone = countryCode + formData.phone.replace(/\D/g, "");
     
-    // Simulate API call
-    try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      console.log("Registration data:", {
-        ...formData,
-        phone: countryCode + formData.phone.replace(/\D/g, "")
-      });
-      setShowSuccess(true);
-    } catch (error) {
-      setErrors({ submit: "Registration failed. Please try again." });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    const response = await signupRequestOtp({
+      phone: fullPhone,name: formData.firstName+formData.lastName
+    }).unwrap();
+    
+    // Store user data temporarily for the OTP verification
+    localStorage.setItem("tempUserData", JSON.stringify({
+      
+      name: formData.firstName+formData.lastName,
+      phone: fullPhone
+    }));
+    
+    // Navigate to OTP verification with phone and type
+    // router.push(`/verify-otp?phone=${encodeURIComponent(fullPhone)}&type=signup`);
+    router.push(`/verify-otp?phone=${encodeURIComponent(fullPhone)}&type=signup&name=${encodeURIComponent(formData.firstName + " " + formData.lastName)}`);
+
+    
+  } catch (error: any) {
+    setErrors({ submit: error?.data?.error || "Registration failed. Please try again." });
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));

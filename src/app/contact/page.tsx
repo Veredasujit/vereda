@@ -3,7 +3,10 @@
 import { useState } from 'react';
 import { MapPin, Phone, Mail, Globe, Send } from 'lucide-react';
 import dynamic from 'next/dynamic';
-
+import { useCreateContactMutation } from '@/Redux/api/contactApi'; // Update with correct path
+import { useSelector } from "react-redux";
+import { RootState } from "@/Redux/store";
+import toast from 'react-hot-toast';
 // Dynamically import the map component with no SSR
 const Map = dynamic(() => import('@/components/Map'), {
   ssr: false,
@@ -33,6 +36,10 @@ export default function ContactPage() {
     subject: '',
     message: ''
   });
+const userId = useSelector((state: RootState) => state.auth.user?.id);
+// console.log("user ID",userId)
+  // Initialize the mutation hook
+  const [createContact, { isLoading, isError, isSuccess, error }] = useCreateContactMutation();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -42,27 +49,71 @@ export default function ContactPage() {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
+    
+    try {
+      // Prepare the data for the API call
+      const contactData = {
+        userId:userId!, // You'll need to get this from your auth context or props
+        name: formData.name,
+        email: formData.email,
+        mobile: formData.mobile,
+        subject: formData.subject,
+        message: formData.message
+      };
+
+      // Call the mutation
+      const result = await createContact(contactData).unwrap();
+      toast.success("Your message has been sent successfully! We'll get back to you soon.")
+      // console.log('Contact created successfully:', result);
+      
+      // Reset form on success
+      if (result.success) {
+        setFormData({
+          name: '',
+          email: '',
+          mobile: '',
+          subject: '',
+          message: ''
+        });
+      }
+    } catch (err) {
+      toast.error("Failed to send message")
+      console.error('Failed to create contact:', err);
+    }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-12 px-4 sm:px-6 lg:px-8">
       {/* Header Section */}
       <div className="max-w-7xl mx-auto text-center mb-16">
-        
-        
         <h1 className="text-3xl md:text-3xl font-bold text-gray-900 mb-4">
-          GET IN TOUCH <span className='text-blue-600'>WITH US  </span>
+          GET IN TOUCH <span className='text-blue-600'>WITH US</span>
         </h1>
-        
         <p className="text-xl text-gray-600 max-w-3xl mx-auto">
           We're Always Eager To Hear From You!
         </p>
       </div>
 
       <div className="max-w-7xl mx-auto">
+        {/* Success Message */}
+        {isSuccess && (
+          <div className="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+            Your message has been sent successfully! We'll get back to you soon.
+          </div>
+        )}
+
+        {/* Error Message */}
+        {isError && (
+          <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+            Failed to send your message. Please try again later.
+            {error && 'data' in error && (
+              <p className="text-sm mt-1">{(error.data as any)?.message}</p>
+            )}
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Left Column - Contact Form */}
           <div className="bg-white rounded-2xl shadow-xl p-8">
@@ -87,7 +138,8 @@ export default function ContactPage() {
                   required
                   value={formData.name}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  disabled={isLoading}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
                   placeholder="Enter your full name"
                 />
               </div>
@@ -103,7 +155,8 @@ export default function ContactPage() {
                   required
                   value={formData.email}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  disabled={isLoading}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
                   placeholder="Enter your email address"
                 />
               </div>
@@ -119,7 +172,8 @@ export default function ContactPage() {
                   required
                   value={formData.mobile}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  disabled={isLoading}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
                   placeholder="Enter your mobile number"
                 />
               </div>
@@ -135,7 +189,8 @@ export default function ContactPage() {
                   required
                   value={formData.subject}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  disabled={isLoading}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
                   placeholder="What is this regarding?"
                 />
               </div>
@@ -150,17 +205,28 @@ export default function ContactPage() {
                   rows={6}
                   value={formData.message}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none"
+                  disabled={isLoading}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none disabled:bg-gray-100 disabled:cursor-not-allowed"
                   placeholder="Tell us more about your inquiry..."
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full bg-blue-600 text-white py-4 px-6 rounded-lg font-semibold hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 flex items-center justify-center gap-2"
+                disabled={isLoading}
+                className="w-full bg-blue-600 text-white py-4 px-6 rounded-lg font-semibold hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 flex items-center justify-center gap-2 disabled:bg-blue-400 disabled:cursor-not-allowed"
               >
-                <Send size={20} />
-                Send Your Message
+                {isLoading ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <Send size={20} />
+                    Send Your Message
+                  </>
+                )}
               </button>
             </form>
           </div>
