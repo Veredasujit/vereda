@@ -3,24 +3,24 @@ import React from "react";
 import { Menu, X } from "lucide-react";
 import { User } from "../../types";
 
+import { useSelector } from "react-redux";
+import { RootState } from "@/Redux/store";
+import Image from "next/image";
+
 interface DashboardNavbarProps {
   isSidebarOpen: boolean;
   onToggleSidebar: () => void;
 }
 
-const mockUser: User = {
-  id: "1",
-  name: "John Doe",
-  email: "john@example.com",
-  avatar: "/avatar-placeholder.png",
-  joinDate: "2024-01-15",
-  subscription: "premium",
-};
+
 
 const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
   isSidebarOpen,
   onToggleSidebar,
 }) => {
+
+  const userData = useSelector((state: RootState) => state.auth.user);
+      console.log("u img ",userData)
   return (
     <nav className="bg-white shadow-sm border-b border-gray-200 fixed w-full z-50">
       <div className="px-4 sm:px-6 py-3 flex justify-between items-center">
@@ -39,7 +39,13 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
           </button>
 
           {/* Logo / Brand */}
-          <h1 className="text-2xl font-bold text-gray-800">Vereda </h1>
+          
+          <a
+                  href="/"
+                  className="block px-3 py-2 text-2xl font-bold text-gray-700 hover:bg-gray-100 rounded-md"
+                >
+                      Vereda
+            </a>
         </div>
 
         {/* Right section: User profile + notifications */}
@@ -65,10 +71,21 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
           {/* User Profile Dropdown */}
           <div className="relative group hidden sm:block">
             <button className="flex items-center space-x-3 text-gray-700 hover:text-gray-900">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
-                {mockUser.name.charAt(0)}
-              </div>
-              <span className="font-medium">{mockUser.name}</span>
+                  <div className="w-10 h-10  flex items-center justify-center overflow-hidden">
+                    {userData?.profileURL ? (
+                      <Image
+                        src={userData.profileURL}
+                        alt={userData.name || 'User'}
+                        width={30}
+                        height={30}
+                        className="object-cover rounded-full"
+                      />
+                    ) : (
+                      <span className="text-white font-semibold">{userData?.name?.[0] || 'U'}</span>
+                    )}
+                  </div>
+
+              <span className="font-medium">{userData?.name}</span>
               <svg
                 className="w-4 h-4"
                 fill="none"
@@ -87,8 +104,8 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
             {/* Dropdown Menu */}
             <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
               <div className="p-4 border-b border-gray-200">
-                <p className="font-semibold text-gray-800">{mockUser.name}</p>
-                <p className="text-sm text-gray-600">{mockUser.email}</p>
+                <p className="font-semibold text-gray-800">{userData?.name}</p>
+                <p className="text-sm text-gray-600">{userData?.email}</p>
               </div>
               <div className="p-2">
                 <a

@@ -1,6 +1,9 @@
+"use client"
 import React from 'react';
 import { User, UserStats } from '../../types/index';
 import DashboardStats from '@/components/dashboard/DashboardStats';
+import { useSelector } from "react-redux";
+import { RootState } from "@/Redux/store";
 
 // Mock data
 const mockUser: User = {
@@ -27,6 +30,8 @@ const DashboardPage: React.FC = () => {
     month: 'long',
     day: 'numeric'
   });
+  const userData = useSelector((state: RootState) => state.auth.user);
+    // console.log("u img ",userData)
 
   return (
     <div className="min-h-screen bg-gray-50 mt-[80px]">
@@ -36,7 +41,7 @@ const DashboardPage: React.FC = () => {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">
-                Welcome back, {mockUser.name}! <span className="animate-wave">👋</span>
+                Welcome back,<span className='text-blue-800'>{userData?.name || 'User'}!</span>  <span className="animate-wave">👋</span>
               </h1>
               <p className="text-gray-600 mt-2 flex items-center gap-2">
                 <span>Here's your learning progress and account overview</span>
@@ -49,12 +54,15 @@ const DashboardPage: React.FC = () => {
             <div className="mt-4 sm:mt-0">
               <div className="text-right">
                 <p className="text-sm text-gray-600">Member since</p>
-                <p className="text-gray-900 font-medium">
-                  {new Date(mockUser.joinDate).toLocaleDateString('en-US', {
-                    month: 'long',
-                    year: 'numeric'
-                  })}
-                </p>
+                  <p className="text-gray-900 font-medium">
+                    {userData?.createdAt
+                      ? new Date(userData.createdAt).toLocaleDateString('en-US', {
+                          month: 'long',
+                          year: 'numeric',
+                        })
+                      : 'N/A'}
+                  </p>
+
               </div>
             </div>
           </div>

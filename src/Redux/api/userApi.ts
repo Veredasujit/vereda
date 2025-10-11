@@ -1,23 +1,23 @@
-
 import { apiSlice } from "../apiSlice";
-
 
 export const userApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-   
 
-getAllProfiles: builder.query<{ success: boolean; users: any[] }, void>({
-  query: () => ({
-    url: "/auth/all-profile",
-    method: "GET",
-  }),
-}),
+    // ✅ Update User (PUT request)
+    updateUser: builder.mutation({
+      query: ({ id, data }) => ({
+        url: `/users/${id}`,
+        method: "PUT",
+        body: data,
+      }),
+    }),
+
   }),
 
   overrideExisting: false,
 });
 
-// Hooks
+// ✅ Export Hooks
 export const {
-  useGetAllProfilesQuery,
+  useUpdateUserMutation,
 } = userApi;

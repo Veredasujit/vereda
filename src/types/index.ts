@@ -5,6 +5,7 @@ export interface User {
   avatar?: string;
   joinDate: string;
   subscription: 'free' | 'premium' | 'pro';
+  
 }
 
 export interface Course {

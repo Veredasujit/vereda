@@ -1,9 +1,12 @@
 'use client';
 
 import { motion, Variants } from 'framer-motion';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Search, Filter, X, Star, Clock, Users, BookOpen, Zap, Smartphone, Brain } from 'lucide-react';
 import { useGetAllCoursesQuery } from '../../Redux/api/coursesApi'; // Update the import path
+import { useSelector } from "react-redux";
+import { RootState } from "@/Redux/store";
+import { redirect,useRouter } from 'next/navigation';
 
 // Interface based on your actual API response
 interface Course {
@@ -175,9 +178,9 @@ export default function ViewCourses() {
   const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState('popular');
   const [selectedStatus, setSelectedStatus] = useState<'All' | 'coming_soon' | 'live' | 'expired'>('All');
-
-  // Use the RTK Query hook to fetch courses
+const user = useSelector((state: RootState) => state.auth.user);
   const { data: coursesData, isLoading, error } = useGetAllCoursesQuery();
+  const router = useRouter();
 
   console.log("my course data are ", coursesData);
 
@@ -226,6 +229,48 @@ export default function ViewCourses() {
       };
     });
   }, [coursesData]);
+
+   // Handle enrollment button click
+  const handleEnrollClick = (course: UICourse) => {
+    // Check if user is logged in
+      if (!user) {
+    router.push('/login?redirect=/courses');
+    return;
+  }
+
+  if (!user) {
+    return <p>Redirecting to login...</p>; // optional placeholder
+  }
+
+    // Prepare course and user data for payment page
+    const enrollmentData = {
+      course: {
+        id: course.id,
+        title: course.title,
+        price: course.discountedPrice,
+        originalPrice: course.originalPrice,
+        discountPercentage: course.discountPercentage,
+        instructor: course.instructor.name,
+        duration: course.courseDuration,
+        image: course.courseImageURL,
+        category: course.category
+      },
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        profileURL:user.profileURL,
+        phone:user.phone
+        // Add other user details you need
+      }
+    };
+
+    // Navigate to payment page with data
+    router.push(`/payment-page?data=${encodeURIComponent(JSON.stringify(enrollmentData))}`);
+    
+
+  };
+
 
   const categories = ['All', 'Flutter', 'AI & Machine Learning'];
   const levels = ['All', 'Beginner', 'Intermediate', 'Advanced'];
@@ -804,6 +849,7 @@ export default function ViewCourses() {
                       </span>
                     </div>
                     <motion.button
+                    onClick={() => handleEnrollClick(course)}
                       className={`font-semibold py-2 px-6 rounded-xl hover:shadow-lg transition-all duration-300 ${
                         course.category === 'Flutter'
                           ? 'bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white'
@@ -811,8 +857,10 @@ export default function ViewCourses() {
                       }`}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
+                      disabled={course.status !== 'live'}
                     >
-                      Enroll Now
+                      {course.status === 'live' ? 'Enroll Now' : 
+                     course.status === 'coming_soon' ? 'Coming Soon' : 'Expired'}
                     </motion.button>
                   </div>
                 </div>

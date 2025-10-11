@@ -5,6 +5,9 @@ type User = {
   id: string;
   name: string;
   phone: string;
+  profileURL:string;
+  email:string;
+  createdAt:Date;
   // add more fields if your backend sends them
 };
 
