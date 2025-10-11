@@ -21,6 +21,7 @@ export interface Course {
   duration:string;
   level:string;
   status: 'completed' | 'in-progress' | 'not-started';
+  courseImageURL:string;
 }
 
 export interface UserStats {
@@ -29,5 +30,5 @@ export interface UserStats {
   totalSpent: number;
   learningHours: number;
   completionRate:number;
-  currentStreak:number;
+  
 }

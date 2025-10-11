@@ -1,75 +1,60 @@
 "use client"
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Course } from '@/types/index';
+import { useGetEnrollmentByIdQuery } from "@/Redux/api/enrollmentApi";
+import { useSelector } from "react-redux";
+import { RootState } from "@/Redux/store";
 
 interface CourseDetailsProps {
-  courses: Course[];
+  courses?: Course[];
 }
 
-const mockCourses: Course[] = [
-  {
-    id: '1',
-    title: 'React Masterclass',
-    description: 'Learn React from basics to advanced concepts including hooks, context, and state management',
-    price: 89.99,
-    purchaseDate: '2024-02-01',
-    progress: 75,
-    instructor: 'Jane Smith',
-    category: 'Web Development',
-    status: 'in-progress',
-    thumbnail: '🎨',
-    duration: '28 hours',
-    level: 'Intermediate'
-  },
-  {
-    id: '2',
-    title: 'TypeScript Fundamentals',
-    description: 'Master TypeScript for modern web development with comprehensive type systems',
-    price: 69.99,
-    purchaseDate: '2024-01-20',
-    progress: 100,
-    instructor: 'Mike Johnson',
-    category: 'Programming',
-    status: 'completed',
-    thumbnail: '📘',
-    duration: '18 hours',
-    level: 'Beginner'
-  },
-  {
-    id: '3',
-    title: 'Next.js & Tailwind',
-    description: 'Build modern web applications with Next.js and Tailwind CSS',
-    price: 79.99,
-    purchaseDate: '2024-03-10',
-    progress: 25,
-    instructor: 'Sarah Wilson',
-    category: 'Web Development',
-    status: 'in-progress',
-    thumbnail: '⚡',
-    duration: '32 hours',
-    level: 'Advanced'
-  },
-  {
-    id: '4',
-    title: 'Node.js Backend Development',
-    description: 'Create robust backend services with Node.js and Express',
-    price: 94.99,
-    purchaseDate: '2024-03-15',
-    progress: 0,
-    instructor: 'David Brown',
-    category: 'Backend',
-    status: 'not-started',
-    thumbnail: '🚀',
-    duration: '24 hours',
-    level: 'Intermediate'
-  }
-];
+interface Enrollment {
+  id: string;
+  userId: string;
+  courseId: string;
+  status: 'completed' | 'in-progress' | 'not-started';
+  createdAt: string;
+  updatedAt: string;
+  course: Course;
+}
 
 const CourseDetails: React.FC<CourseDetailsProps> = () => {
   const [filter, setFilter] = useState<'all' | 'in-progress' | 'completed' | 'not-started'>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  
+  const user = useSelector((state: RootState) => state.auth.user);
+  const userId = user?.id;
+  
+  const { data: enrollmentsData, error, isLoading } = useGetEnrollmentByIdQuery(userId);
+  
+  // console.log("enrollment data are ", enrollmentsData);
 
-  const filteredCourses = mockCourses.filter(course => 
+  // Transform enrollment data to course format
+  const enrolledCourses = useMemo(() => {
+    if (!enrollmentsData?.enrollments) return [];
+    
+    return enrollmentsData.enrollments.map((enrollment: Enrollment) => {
+      const course = enrollment.course;
+      return {
+        id: course.id,
+        title: course.title,
+        description: course.description,
+        price: typeof course.price === 'string' ? parseFloat(course.price) : course.price,
+        purchaseDate: enrollment.createdAt,
+        progress: enrollment.status === 'completed' ? 100 : 
+                 enrollment.status === 'in-progress' ? 50 : 0,
+        instructor: course.instructor || 'Unknown Instructor',
+        category: course.category || 'Uncategorized',
+        status: enrollment.status,
+        thumbnail: course.courseImageURL || '📚',
+        duration: course.duration || 'Unknown duration',
+        level: course.level || 'Beginner'
+      };
+    });
+  }, [enrollmentsData]);
+
+  const filteredCourses = enrolledCourses.filter(course => 
     filter === 'all' || course.status === filter
   );
 
@@ -105,6 +90,42 @@ const CourseDetails: React.FC<CourseDetailsProps> = () => {
     return `${progress}% Complete`;
   };
 
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-6 mt-[80px]">
+        <div className="max-w-7xl mx-auto">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-300 rounded w-1/4 mb-4"></div>
+            <div className="h-4 bg-gray-300 rounded w-1/2 mb-8"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3].map((n) => (
+                <div key={n} className="bg-white rounded-xl shadow-sm p-6">
+                  <div className="h-48 bg-gray-300 rounded mb-4"></div>
+                  <div className="h-4 bg-gray-300 rounded mb-2"></div>
+                  <div className="h-4 bg-gray-300 rounded w-3/4"></div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-6 mt-[80px]">
+        <div className="max-w-7xl mx-auto text-center">
+          <div className="text-6xl mb-4">😞</div>
+          <h3 className="text-xl font-semibold text-gray-800 mb-2">Error loading courses</h3>
+          <p className="text-gray-600">Please try again later</p>
+        </div>
+      </div>
+    );
+  }
+
   // Grid View Component
   const GridView = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -112,9 +133,17 @@ const CourseDetails: React.FC<CourseDetailsProps> = () => {
         <div key={course.id} className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-lg transition-all duration-300 hover:scale-105 group">
           {/* Course Header */}
           <div className="relative">
-            <div className="w-full h-32 bg-gradient-to-br from-blue-500 to-purple-600 rounded-t-xl flex items-center justify-center text-white text-4xl">
-              {course.thumbnail}
-            </div>
+            {course.thumbnail.startsWith('http') ? (
+              <img 
+                src={course.thumbnail} 
+                alt={course.title}
+                className="w-full h-32 object-cover rounded-t-xl"
+              />
+            ) : (
+              <div className="w-full h-32 bg-gradient-to-br from-blue-500 to-purple-600 rounded-t-xl flex items-center justify-center text-white text-4xl">
+                {course.thumbnail}
+              </div>
+            )}
             
             {/* Progress Ring */}
             <div className="absolute -bottom-4 right-4">
@@ -198,8 +227,10 @@ const CourseDetails: React.FC<CourseDetailsProps> = () => {
             {/* Footer */}
             <div className="flex items-center justify-between pt-3 border-t border-gray-100">
               <div>
-                <span className="text-lg font-bold text-gray-900">${course.price}</span>
-                <span className="text-xs text-gray-500 block">Purchased {new Date(course.purchaseDate).toLocaleDateString()}</span>
+                <span className="text-lg font-bold text-gray-900">₹{course.price}</span>
+                <span className="text-xs text-gray-500 block">
+                  Purchased {new Date(course.purchaseDate).toLocaleDateString()}
+                </span>
               </div>
               
               <button className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-200 ${
@@ -228,9 +259,17 @@ const CourseDetails: React.FC<CourseDetailsProps> = () => {
             <div className="flex items-start space-x-4">
               {/* Course Thumbnail */}
               <div className="flex-shrink-0">
-                <div className="w-20 h-20 bg-gradient-to-br from-blue-400 to-purple-500 rounded-xl flex items-center justify-center text-white text-2xl font-bold">
-                  {course.thumbnail}
-                </div>
+                {course.thumbnail.startsWith('http') ? (
+                  <img 
+                    src={course.thumbnail} 
+                    alt={course.title}
+                    className="w-20 h-20 object-cover rounded-xl"
+                  />
+                ) : (
+                  <div className="w-20 h-20 bg-gradient-to-br from-blue-400 to-purple-500 rounded-xl flex items-center justify-center text-white text-2xl font-bold">
+                    {course.thumbnail}
+                  </div>
+                )}
               </div>
 
               {/* Course Info */}
@@ -309,7 +348,7 @@ const CourseDetails: React.FC<CourseDetailsProps> = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">My Learning Journey</h1>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">My Courses</h1>
           <p className="text-gray-600">Track your progress and continue your learning path</p>
         </div>
 
@@ -319,10 +358,10 @@ const CourseDetails: React.FC<CourseDetailsProps> = () => {
             {/* Filter Buttons */}
             <div className="flex flex-wrap gap-2">
               {[
-                { key: 'all', label: 'All Courses', count: mockCourses.length },
-                { key: 'in-progress', label: 'In Progress', count: mockCourses.filter(c => c.status === 'in-progress').length },
-                { key: 'completed', label: 'Completed', count: mockCourses.filter(c => c.status === 'completed').length },
-                { key: 'not-started', label: 'Not Started', count: mockCourses.filter(c => c.status === 'not-started').length }
+                { key: 'all', label: 'All Courses', count: enrolledCourses.length },
+                { key: 'in-progress', label: 'In Progress', count: enrolledCourses.filter(c => c.status === 'in-progress').length },
+                { key: 'completed', label: 'Completed', count: enrolledCourses.filter(c => c.status === 'completed').length },
+                { key: 'not-started', label: 'Not Started', count: enrolledCourses.filter(c => c.status === 'not-started').length }
               ].map(({ key, label, count }) => (
                 <button
                   key={key}
@@ -369,7 +408,9 @@ const CourseDetails: React.FC<CourseDetailsProps> = () => {
           <div className="text-center py-12">
             <div className="text-6xl mb-4">📚</div>
             <h3 className="text-xl font-semibold text-gray-800 mb-2">No courses found</h3>
-            <p className="text-gray-600">Try changing your filter criteria</p>
+            <p className="text-gray-600">
+              {enrolledCourses.length === 0 ? "You haven't enrolled in any courses yet" : "Try changing your filter criteria"}
+            </p>
           </div>
         ) : viewMode === 'grid' ? (
           <GridView />
@@ -378,30 +419,32 @@ const CourseDetails: React.FC<CourseDetailsProps> = () => {
         )}
 
         {/* Stats Summary */}
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
-            <div className="text-2xl font-bold text-gray-800">{mockCourses.length}</div>
-            <div className="text-gray-600 text-sm">Total Courses</div>
-          </div>
-          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
-            <div className="text-2xl font-bold text-blue-600">
-              {mockCourses.filter(c => c.status === 'in-progress').length}
+        {enrolledCourses.length > 0 && (
+          <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+              <div className="text-2xl font-bold text-gray-800">{enrolledCourses.length}</div>
+              <div className="text-gray-600 text-sm">Total Courses</div>
             </div>
-            <div className="text-gray-600 text-sm">In Progress</div>
-          </div>
-          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
-            <div className="text-2xl font-bold text-green-600">
-              {mockCourses.filter(c => c.status === 'completed').length}
+            <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+              <div className="text-2xl font-bold text-blue-600">
+                {enrolledCourses.filter(c => c.status === 'in-progress').length}
+              </div>
+              <div className="text-gray-600 text-sm">In Progress</div>
             </div>
-            <div className="text-gray-600 text-sm">Completed</div>
-          </div>
-          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
-            <div className="text-2xl font-bold text-gray-600">
-              {Math.round(mockCourses.reduce((acc, course) => acc + course.progress, 0) / mockCourses.length)}%
+            <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+              <div className="text-2xl font-bold text-green-600">
+                {enrolledCourses.filter(c => c.status === 'completed').length}
+              </div>
+              <div className="text-gray-600 text-sm">Completed</div>
             </div>
-            <div className="text-gray-600 text-sm">Average Progress</div>
+            <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+              <div className="text-2xl font-bold text-gray-600">
+                {Math.round(enrolledCourses.reduce((acc, course) => acc + course.progress, 0) / enrolledCourses.length)}%
+              </div>
+              <div className="text-gray-600 text-sm">Average Progress</div>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

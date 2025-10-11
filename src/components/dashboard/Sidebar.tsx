@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { Menu, X } from "lucide-react";
+import Link from "next/link";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -20,15 +20,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     <>
       {/* 📋 Sidebar (Desktop + Mobile) */}
       <aside
-        className={`fixed bg-white shadow-sm border-r mt-[70px] border-gray-200 z-40 transform transition-transform duration-300
-        lg:translate-x-0 lg:static lg:w-64 lg:top-0
-        ${isOpen ? "translate-x-0 w-64" : "-translate-x-full w-64"}
-        top-[64px] h-[calc(100%-64px)] lg:h-full`}
+        className={`fixed top-[64px] left-0 z-40 bg-white shadow-sm border-r border-gray-200 
+        transform transition-transform duration-300 
+        ${isOpen ? "translate-x-0" : "-translate-x-full"} 
+        lg:translate-x-0 lg:static lg:w-64 
+        w-64 h-[calc(100vh-64px)] overflow-y-auto`}
       >
-        <div className="p-6 overflow-y-auto h-full">
+        <div className="p-6 ">
           <nav className="space-y-2">
             {menuItems.map((item) => (
-              <a
+              <Link
                 key={item.name}
                 href={item.href}
                 onClick={onClose}
@@ -36,31 +37,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               >
                 <span className="text-lg">{item.icon}</span>
                 <span className="font-medium">{item.name}</span>
-              </a>
+              </Link>
             ))}
           </nav>
-
-          <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-            <h3 className="font-semibold text-gray-800 mb-3">Quick Stats</h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Courses</span>
-                <span className="font-semibold">12</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Completed</span>
-                <span className="font-semibold">8</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Hours</span>
-                <span className="font-semibold">45h</span>
-              </div>
-            </div>
-          </div>
         </div>
       </aside>
 
-      {/* 🔲 Overlay */}
+      {/* 🔲 Overlay for mobile */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-black/40 z-30 lg:hidden"

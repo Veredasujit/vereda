@@ -1,13 +1,13 @@
 'use client';
 
+import Link from 'next/link';
 import { FaFacebook, FaTwitter, FaLinkedin, FaInstagram, FaMapMarkerAlt, FaPhone } from 'react-icons/fa';
 
 export default function Nav() {
   const socialLinks = [
-    { icon: FaFacebook, href: '#' },
-    { icon: FaTwitter, href: '#' },
-    { icon: FaLinkedin, href: '#' },
-    { icon: FaInstagram, href: '#' },
+    { icon: FaFacebook, href: 'https://www.facebook.com/veredaindia?mibextid=LQQJ4d' },
+    { icon: FaLinkedin, href: 'https://www.linkedin.com/company/vereda-management-india/' },
+    { icon: FaInstagram, href: 'https://www.instagram.com/veredaindia' },
   ];
 
   return (
@@ -17,12 +17,12 @@ export default function Nav() {
         {/* Phone */}
         <div className="flex items-center gap-2 ">
           <FaPhone className="text-blue-600 text-lg" />
-          <a
+          <Link
             href="tel:+919570994444"
             className="text-lg font-semibold text-gray-900 hover:text-blue-600 transition-colors"
           >
             +91-9 570 994 444
-          </a>
+          </Link>
         </div>
 
         {/* Address */}
@@ -40,13 +40,13 @@ export default function Nav() {
         <p className="text-sm text-gray-600 mb-1">Find us on:</p>
         <div className="flex gap-3">
           {socialLinks.map((social, index) => (
-            <a
+            <Link
               key={index}
               href={social.href}
               className="w-7 h-7 bg-blue-300 rounded-lg flex items-center justify-center text-gray-600 hover:bg-blue-600 hover:text-white transition-colors"
             >
               <social.icon className="text-lg" />
-            </a>
+            </Link>
           ))}
         </div>
       </div>

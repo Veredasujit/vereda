@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Footer() {
   return (
     <div className="bg-gray-900 text-white">
@@ -52,28 +54,28 @@ export default function Footer() {
             <h3 className="text-lg font-semibold mb-4 text-blue-400">Account</h3>
             <ul className="space-y-3">
               <li>
-                <a 
+                <Link
                   href="/dashboard" 
                   className="text-gray-300 hover:text-white transition-colors duration-200 hover:translate-x-1 transform inline-block"
                 >
                   Dashboard
-                </a>
+                </Link>
               </li>
               <li>
-                <a 
+                <Link
                   href="/login" 
                   className="text-gray-300 hover:text-white transition-colors duration-200 hover:translate-x-1 transform inline-block"
                 >
                   Login
-                </a>
+                </Link>
               </li>
               <li>
-                <a 
+                <Link
                   href="/register" 
                   className="text-gray-300 hover:text-white transition-colors duration-200 hover:translate-x-1 transform inline-block"
                 >
                   Register
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -83,44 +85,44 @@ export default function Footer() {
             <h3 className="text-lg font-semibold mb-4 text-blue-400">About Us</h3>
             <ul className="space-y-3">
               <li>
-                <a 
+                <Link 
                   href="/about-us" 
                   className="text-gray-300 hover:text-white transition-colors duration-200 hover:translate-x-1 transform inline-block"
                 >
                   About Us
-                </a>
+                </Link>
               </li>
               <li>
-                <a 
+                <Link
                   href="/contact" 
                   className="text-gray-300 hover:text-white transition-colors duration-200 hover:translate-x-1 transform inline-block"
                 >
                   Contact Us
-                </a>
+                </Link>
               </li>
               <li>
-                <a 
+                <Link 
                   href="/refund-policy" 
                   className="text-gray-300 hover:text-white transition-colors duration-200 hover:translate-x-1 transform inline-block"
                 >
                   Refund Policy
-                </a>
+                </Link>
               </li>
               <li>
-                <a 
+                <Link
                   href="/terms-and-conditions" 
                   className="text-gray-300 hover:text-white transition-colors duration-200 hover:translate-x-1 transform inline-block"
                 >
                   Terms & Conditions
-                </a>
+                </Link>
               </li>
               <li>
-                <a 
+                <Link
                   href="/privacy" 
                   className="text-gray-300 hover:text-white transition-colors duration-200 hover:translate-x-1 transform inline-block"
                 >
                   Privacy Policy
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -130,7 +132,7 @@ export default function Footer() {
             <h3 className="text-lg font-semibold mb-4 text-blue-400">Follow Us</h3>
             <ul className="space-y-3">
               <li>
-                <a 
+                <Link
                   href="https://www.facebook.com/veredaindia?mibextid=LQQJ4d" 
                   target="_blank"
                   rel="noopener noreferrer"
@@ -138,10 +140,10 @@ export default function Footer() {
                 >
                   <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
                   Facebook
-                </a>
+                </Link>
               </li>
               <li>
-                <a 
+                <Link
                   href="https://www.instagram.com/veredaindia" 
                   target="_blank"
                   rel="noopener noreferrer"
@@ -149,10 +151,10 @@ export default function Footer() {
                 >
                   <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
                   Instagram
-                </a>
+                </Link>
               </li>
               <li>
-                <a 
+                <Link
                   href="https://www.linkedin.com/company/vereda-management-india/" 
                   target="_blank"
                   rel="noopener noreferrer"
@@ -160,7 +162,7 @@ export default function Footer() {
                 >
                   <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
                   LinkedIn
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -170,22 +172,22 @@ export default function Footer() {
             <h3 className="text-lg font-semibold mb-4 text-blue-400">Support</h3>
             <ul className="space-y-3">
               <li>
-                <a 
+                <Link 
                   href="https://api.whatsapp.com/send/?phone=%2B919570994444&text&type=phone_number&app_absent=0" 
                  target="_blank"
                   className="text-gray-300 hover:text-white transition-colors duration-200 hover:translate-x-1 transform inline-block"
                 >
                   Help Center
-                </a>
+                </Link>
               </li>
               <li>
-                <a 
+                <Link
                   href="tel:+919570994444" 
                   target="_blank"
                   className="text-gray-300 hover:text-white transition-colors duration-200 hover:translate-x-1 transform inline-block"
                 >
                   Contact Support
-                </a>
+                </Link>
               </li>
             </ul>
           </div>

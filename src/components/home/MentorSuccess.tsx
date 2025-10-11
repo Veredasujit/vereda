@@ -1,5 +1,6 @@
 "use client"
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 
 export default function MentorSuccess() {
@@ -106,7 +107,7 @@ export default function MentorSuccess() {
               aria-label="Request a call back to learn more about our programs"
             >
               <span className="relative z-10 flex items-center justify-center gap-3">
-                Request Call Back
+             <Link href="/contact">Request Call Back</Link>   
                 <svg 
                   className="w-5 h-5 transform group-hover:translate-x-1 transition-transform duration-300" 
                   fill="none" 

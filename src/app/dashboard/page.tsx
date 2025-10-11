@@ -4,6 +4,7 @@ import { User, UserStats } from '../../types/index';
 import DashboardStats from '@/components/dashboard/DashboardStats';
 import { useSelector } from "react-redux";
 import { RootState } from "@/Redux/store";
+import { useGetEnrollmentByIdQuery } from '@/Redux/api/enrollmentApi';
 
 // Mock data
 const mockUser: User = {
@@ -14,14 +15,7 @@ const mockUser: User = {
   subscription: 'premium'
 };
 
-const mockStats: UserStats = {
-  totalCourses: 12,
-  completedCourses: 8,
-  totalSpent: 456.75,
-  learningHours: 45.5,
-  completionRate: 67,
-  currentStreak: 12
-};
+
 
 const DashboardPage: React.FC = () => {
   const currentDate = new Date().toLocaleDateString('en-US', {
@@ -31,7 +25,22 @@ const DashboardPage: React.FC = () => {
     day: 'numeric'
   });
   const userData = useSelector((state: RootState) => state.auth.user);
-    // console.log("u img ",userData)
+    const userId=userData?.id;
+      
+      const { data: enrollmentsData, error, isLoading } = useGetEnrollmentByIdQuery(userId);
+      
+      // console.log("enrollment data are ", enrollmentsData);
+      const enrollmentCount = enrollmentsData?.enrollments?.length ?? 0;
+
+// console.log("Total Enrollments:", enrollmentCount);
+        const mockStats: UserStats = {
+          totalCourses: enrollmentCount,
+          completedCourses: 1,
+          totalSpent: 456.75,
+          learningHours: 45.5,
+          completionRate: 67,
+          
+        };
 
   return (
     <div className="min-h-screen bg-gray-50 mt-[80px]">

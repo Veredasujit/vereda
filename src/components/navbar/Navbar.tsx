@@ -7,6 +7,8 @@ import { useLogoutMutation } from "../../Redux/api/authApi"; // adjust path
 import { useDispatch } from "react-redux";
 import { logout as logoutSlice } from "../../Redux/slices/authSlice"; // adjust path
 import { useRouter } from "next/navigation";
+import { LayoutDashboard, LogOut } from "lucide-react";
+import { Button } from "../ui/button";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -60,20 +62,47 @@ export default function Navbar() {
             <Link href="/contact" className="hover:text-blue-600">Contact</Link>
 
             {userName ? (
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold">
-                  {userName.charAt(0).toUpperCase()}
-                </div>
-                <button
-                  onClick={handleLogout}
-                  className="hover:text-red-600 font-semibold cursor-pointer"
-                >
-                  Logout
-                </button>
-              </div>
-            ) : (
-              <Link href="/login" className="block hover:text-blue-600">Login</Link>
-            )}
+        <div className="flex items-center gap-4">
+          {/* User Avatar */}
+          <div
+            className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 
+                       text-white flex items-center justify-center font-semibold 
+                       shadow-sm hover:scale-105 transition-transform duration-150"
+            title={userName}
+          >
+            {userName.charAt(0).toUpperCase()}
+          </div>
+
+          {/* Dashboard Link */}
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-1 text-sm font-medium 
+                       text-gray-700 hover:text-blue-600 transition-colors duration-150"
+          >
+            <LayoutDashboard size={18} />
+            Dashboard
+          </Link>
+
+          {/* Logout Button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleLogout}
+            className="flex items-center gap-1 cursor-pointer text-sm text-gray-700 hover:text-red-600 transition-colors"
+          >
+            
+            Logout
+          </Button>
+        </div>
+      ) : (
+        <Link
+          href="/login"
+          className="px-4 py-2 rounded-lg bg-blue-600 text-white font-medium 
+                     hover:bg-blue-700 transition-colors duration-150 cursor-pointer"
+        >
+          Login
+        </Link>
+      )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -93,21 +122,48 @@ export default function Navbar() {
           <Link href="/courses" className="block hover:text-blue-600">Courses</Link>
           <Link href="/contact" className="block hover:text-blue-600">Contact</Link>
 
-          {userName ? (
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold">
-                {userName.charAt(0).toUpperCase()}
-              </div>
-              <button
-                onClick={handleLogout}
-                className="hover:text-red-600 font-semibold"
-              >
-                Logout
-              </button>
-            </div>
-          ) : (
-            <Link href="/login" className="block hover:text-blue-600">Login</Link>
-          )}
+               {userName ? (
+        <div className="flex items-center gap-4">
+          {/* User Avatar */}
+          <div
+            className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 
+                       text-white flex items-center justify-center font-semibold 
+                       shadow-sm hover:scale-105 transition-transform duration-150"
+            title={userName}
+          >
+            {userName.charAt(0).toUpperCase()}
+          </div>
+
+          {/* Dashboard Link */}
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-1 text-sm font-medium 
+                       text-gray-700 hover:text-blue-600 transition-colors duration-150"
+          >
+            <LayoutDashboard size={18} />
+            Dashboard
+          </Link>
+
+          {/* Logout Button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleLogout}
+            className="flex items-center gap-1 cursor-pointer text-sm text-gray-700 hover:text-red-600 transition-colors"
+          >
+            
+            Logout
+          </Button>
+        </div>
+      ) : (
+        <Link
+          href="/login"
+          className="px-4 py-2 rounded-lg bg-blue-600 text-white font-medium 
+                     hover:bg-blue-700 transition-colors duration-150 cursor-pointer"
+        >
+          Login
+        </Link>
+      )}
         </div>
       )}
     </nav>

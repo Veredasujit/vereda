@@ -1,6 +1,7 @@
 'use client';
 
 import { motion, Variants } from 'framer-motion';
+import Link from 'next/link';
 
 interface Course {
   id: number;
@@ -187,7 +188,7 @@ export default function FeaturedCourses() {
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
                 >
-                  Enroll Now
+                <Link href="/view-courses"> Enroll Now</Link> 
                 </motion.button>
               </div>
             </motion.div>
@@ -203,7 +204,7 @@ export default function FeaturedCourses() {
           transition={{ duration: 0.6, delay: 0.4 }}
         >
           <button className="border-2 border-blue-600 text-blue-600 font-semibold py-3 px-8 rounded-xl hover:bg-blue-600 hover:text-white transition-all duration-300">
-            View All Courses
+         <Link href="/view-courses">View All Courses</Link>   
           </button>
         </motion.div>
       </div>

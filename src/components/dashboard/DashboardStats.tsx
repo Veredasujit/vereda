@@ -37,19 +37,12 @@ const DashboardStats: React.FC<DashboardStatsProps> = ({ stats }) => {
     },
     {
       title: 'Total Spent',
-      value: `$${stats.totalSpent.toFixed(2)}`,
+      value: `₹${stats.totalSpent.toFixed(2)}`,
       subtitle: 'Lifetime investment',
       icon: '💳',
       color: 'purple'
     },
-    {
-      title: 'Learning Hours',
-      value: `${stats.learningHours}h`,
-      subtitle: `${stats.currentStreak} day streak`,
-      icon: '⏱️',
-      color: 'orange',
-      trend: { value: 5.5, isPositive: true }
-    }
+    
   ];
 
   const getColorClasses = (color: string, type: 'bg' | 'text' | 'border' = 'bg') => {
