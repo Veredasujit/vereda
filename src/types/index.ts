@@ -26,9 +26,6 @@ export interface Course {
 
 export interface UserStats {
   totalCourses: number;
-  completedCourses: number;
-  totalSpent: number;
-  learningHours: number;
-  completionRate:number;
+totalPayments:number;
   
 }

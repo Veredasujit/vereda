@@ -59,7 +59,7 @@ export default function PaymentHistoryPage() {
   const user = useSelector((state: RootState) => state.auth.user);
   const userId = user?.id;
   const { data: payments, error, isLoading, refetch } = useGetPaymentsByUserIdQuery(userId);
-  
+  // console.log("pa len",payments?.length || 0)
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<SortOption>("newest");

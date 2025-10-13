@@ -28,20 +28,14 @@ const DashboardStats: React.FC<DashboardStatsProps> = ({ stats }) => {
       trend: { value: 2, isPositive: true }
     },
     {
-      title: 'Completed',
-      value: stats.completedCourses.toString(),
-      subtitle: `${stats.completionRate}% completion rate`,
-      icon: '✅',
-      color: 'green',
-      trend: { value: 1, isPositive: true }
-    },
-    {
-      title: 'Total Spent',
-      value: `₹${stats.totalSpent.toFixed(2)}`,
-      subtitle: 'Lifetime investment',
+      title: 'Total Payment',
+      value: stats.totalPayments.toString(),
+      subtitle: 'payment',
       icon: '💳',
-      color: 'purple'
+      color: 'blue',
+      trend: { value: 2, isPositive: true }
     },
+   
     
   ];
 
@@ -112,17 +106,7 @@ const DashboardStats: React.FC<DashboardStatsProps> = ({ stats }) => {
             </div>
           </div>
           
-          {/* Progress bar for completion rate */}
-          {stat.title === 'Completed' && (
-            <div className="mt-4">
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div 
-                  className="bg-green-500 h-2 rounded-full transition-all duration-500 ease-out"
-                  style={{ width: `${stats.completionRate}%` }}
-                ></div>
-              </div>
-            </div>
-          )}
+         
         </div>
       ))}
     </div>

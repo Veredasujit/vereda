@@ -1,0 +1,23 @@
+version: '3.1'
+
+services:
+  web_blue:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: vereda_frontend:blue
+    container_name: vereda__frontend-blue
+    ports:
+      - '5186:5186'  # Map host 5186 to container 5186
+    networks:
+      - backend
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - TZ=Asia/Kolkata
+      - PORT=5186  # Ensure Next.js listens on port 5186
+
+networks:
+  backend:
+    external: true

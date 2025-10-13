@@ -5,6 +5,8 @@ import DashboardStats from '@/components/dashboard/DashboardStats';
 import { useSelector } from "react-redux";
 import { RootState } from "@/Redux/store";
 import { useGetEnrollmentByIdQuery } from '@/Redux/api/enrollmentApi';
+import Link from 'next/link';
+import { useGetPaymentsByUserIdQuery } from '@/Redux/api/billingApi';
 
 // Mock data
 const mockUser: User = {
@@ -31,15 +33,17 @@ const DashboardPage: React.FC = () => {
       
       // console.log("enrollment data are ", enrollmentsData);
       const enrollmentCount = enrollmentsData?.enrollments?.length ?? 0;
+      
+        const { data: payments } = useGetPaymentsByUserIdQuery(userId);
+        const totalpaymentsdata=payments?.length || 0;
+        // console.log("pa len",payments?.length || 0)
 
 // console.log("Total Enrollments:", enrollmentCount);
         const mockStats: UserStats = {
           totalCourses: enrollmentCount,
-          completedCourses: 1,
-          totalSpent: 456.75,
-          learningHours: 45.5,
-          completionRate: 67,
-          
+          totalPayments:totalpaymentsdata,
+
+
         };
 
   return (
@@ -119,13 +123,14 @@ const DashboardPage: React.FC = () => {
                 <span className="text-2xl mb-2 block">🎯</span>
                 <span className="text-sm font-medium text-gray-900">Set Goals</span>
               </button>
-              <button className="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors duration-200">
-                <span className="text-2xl mb-2 block">📊</span>
-                <span className="text-sm font-medium text-gray-900">View Progress</span>
-              </button>
+              
               <button className="p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors duration-200">
+                    <Link href="/dashboard/settings">
                 <span className="text-2xl mb-2 block">⚙️</span>
-                <span className="text-sm font-medium text-gray-900">Settings</span>
+                <span className="text-sm font-medium text-gray-900">
+                    Settings
+                    </span>
+                    </Link>
               </button>
             </div>
           </div>
