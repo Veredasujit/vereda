@@ -17,14 +17,14 @@ interface User {
   bio: string | null;
   skills: string[];
   joinDate: string;
-  subscription: "free" | "premium" | "pro";
   role: string;
   createdAt: string;
   updatedAt: string;
 }
 
 const UserSettings: React.FC = () => {
-  const userData = useSelector((state: RootState) => state.auth.user);
+  const auth = useSelector((state: RootState) => state.auth);
+const userData = auth.user;
   // console.log("u img ",userData)
   
   const createMockUser = (apiUser: any): User => ({
@@ -37,7 +37,6 @@ const UserSettings: React.FC = () => {
     bio: apiUser?.bio || "Add Bio",
     skills: apiUser?.skills ? (Array.isArray(apiUser.skills) ? apiUser.skills : [apiUser.skills]) : ["add skills"],
     joinDate: apiUser?.createdAt ? new Date(apiUser.createdAt).toISOString().split('T')[0] : "",
-    subscription: "premium",
     role: apiUser?.role || "student",
     createdAt: apiUser?.createdAt,
     updatedAt: apiUser?.updatedAt
@@ -46,7 +45,7 @@ const UserSettings: React.FC = () => {
   const [user, setUser] = useState<User>(createMockUser(userData));
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null| undefined>(null);
   const [updateUser] = useUpdateUserMutation();
   const dispatch = useAppDispatch();
   
@@ -145,7 +144,7 @@ const UserSettings: React.FC = () => {
          // Update Redux store with new user data, keep token unchanged
     dispatch(setCredentials({
       user: result.user,       // updated user
-      token: userData?.token,     // keep current token
+      token: auth?.token?? "",     // keep current token
     }));
       }
 
@@ -153,9 +152,9 @@ const UserSettings: React.FC = () => {
       setUser(result.user);
       toast.success("Profile updated successfully!");
       setIsModalOpen(false);
-    } catch (error) {
+    } catch (error:any) {
       console.error("Update error:", error);
-      toast.error(error?.data?.message || "Failed to update profile");
+      toast.error(error .data.message || "Failed to update profile");
     } finally {
       setIsLoading(false);
     }
@@ -201,7 +200,7 @@ const UserSettings: React.FC = () => {
       <div className="max-w-6xl mx-auto">
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
           {/* Header Section */}
-          <div className={`${getSubscriptionColor(user.subscription)} p-8 text-white`}>
+          <div className=" p-8 text-white bg-blue-600">
             <div className="flex flex-col md:flex-row items-center justify-between">
               <div className="flex items-center space-x-6 mb-4 md:mb-0">
                 <div className="relative">
@@ -222,9 +221,7 @@ const UserSettings: React.FC = () => {
                   <h1 className="text-3xl font-bold">{user.name}</h1>
                   <p className="text-white/80 mt-1">{user.email}</p>
                   <div className="flex items-center gap-2 mt-2">
-                    <span className="inline-block px-3 py-1 bg-white/20 rounded-full text-sm font-medium backdrop-blur-sm">
-                      {user.subscription.charAt(0).toUpperCase() + user.subscription.slice(1)} Member
-                    </span>
+                    
                     <span className="inline-block px-3 py-1 bg-white/20 rounded-full text-sm font-medium backdrop-blur-sm">
                       {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                     </span>

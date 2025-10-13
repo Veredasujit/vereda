@@ -7,6 +7,13 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/Redux/store";
 import Image from "next/image";
 import Link from "next/link";
+import { Button } from "../ui/button";
+
+import { useLogoutMutation } from "../../Redux/api/authApi"; // adjust path
+import { useDispatch } from "react-redux";
+import { logout as logoutSlice } from "../../Redux/slices/authSlice"; // adjust path
+import { useRouter } from "next/navigation";
+
 
 interface DashboardNavbarProps {
   isSidebarOpen: boolean;
@@ -19,9 +26,24 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
   isSidebarOpen,
   onToggleSidebar,
 }) => {
-
+ const [logoutApi] = useLogoutMutation();
+  const dispatch = useDispatch();
+  const router = useRouter();
   const userData = useSelector((state: RootState) => state.auth.user);
       // console.log("u img ",userData)
+      const handleLogout = async () => {
+          try {
+            await logoutApi().unwrap(); // call RTK Query logout
+          } catch (error) {
+            console.error("Logout failed", error);
+          } finally {
+            // Clear Redux store and localStorage
+            dispatch(logoutSlice());
+            
+            router.push("/login");
+          }
+        };
+
   return (
     <nav className="bg-white shadow-sm border-b border-gray-200 fixed w-full z-50">
       <div className="px-4 sm:px-6 py-3 flex justify-between items-center">
@@ -127,12 +149,15 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                 >
                   My Courses
                 </Link>
-                <Link
-                  href="/logout"
-                  className="block px-3 py-2 text-red-600 hover:bg-red-50 rounded-md"
-                >
-                  Sign Out
-                </Link>
+                <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleLogout}
+              className="flex items-center gap-1 cursor-pointer text-sm text-gray-700 hover:text-red-600 transition-colors"
+            >
+              
+              Logout
+            </Button>
               </div>
             </div>
           </div>

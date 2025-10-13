@@ -1,12 +1,23 @@
 "use client"
 import React, { useState, useMemo } from 'react';
-import { Course } from '@/types/index';
 import { useGetEnrollmentByIdQuery } from "@/Redux/api/enrollmentApi";
 import { useSelector } from "react-redux";
 import { RootState } from "@/Redux/store";
 
-interface CourseDetailsProps {
-  courses?: Course[];
+interface Course {
+  id: string;
+  title: string;
+  description: string;
+  price: number;
+  purchaseDate: string;
+  progress: number;
+  instructor: string;
+  category: string;
+  thumbnail?: string;
+  duration:string;
+  level:string;
+  status: 'completed' | 'in-progress' | 'not-started';
+  courseImageURL:string;
 }
 
 interface Enrollment {
@@ -19,7 +30,7 @@ interface Enrollment {
   course: Course;
 }
 
-const CourseDetails: React.FC<CourseDetailsProps> = () => {
+const CourseDetails: React.FC = () => {
   const [filter, setFilter] = useState<'all' | 'in-progress' | 'completed' | 'not-started'>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   
@@ -54,7 +65,7 @@ const CourseDetails: React.FC<CourseDetailsProps> = () => {
     });
   }, [enrollmentsData]);
 
-  const filteredCourses = enrolledCourses.filter(course => 
+  const filteredCourses = enrolledCourses.filter((course:Course) => 
     filter === 'all' || course.status === filter
   );
 
@@ -129,11 +140,11 @@ const CourseDetails: React.FC<CourseDetailsProps> = () => {
   // Grid View Component
   const GridView = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {filteredCourses.map((course) => (
+      {filteredCourses.map((course:Course) => (
         <div key={course.id} className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-lg transition-all duration-300 hover:scale-105 group">
           {/* Course Header */}
           <div className="relative">
-            {course.thumbnail.startsWith('http') ? (
+            {course.thumbnail?.startsWith('http') ? (
               <img 
                 src={course.thumbnail} 
                 alt={course.title}
@@ -253,13 +264,13 @@ const CourseDetails: React.FC<CourseDetailsProps> = () => {
   // List View Component
   const ListView = () => (
     <div className="space-y-4">
-      {filteredCourses.map((course) => (
+      {filteredCourses.map((course:Course) => (
         <div key={course.id} className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-300 group">
           <div className="p-6">
             <div className="flex items-start space-x-4">
               {/* Course Thumbnail */}
               <div className="flex-shrink-0">
-                {course.thumbnail.startsWith('http') ? (
+                {course.thumbnail?.startsWith('http') ? (
                   <img 
                     src={course.thumbnail} 
                     alt={course.title}
@@ -359,9 +370,9 @@ const CourseDetails: React.FC<CourseDetailsProps> = () => {
             <div className="flex flex-wrap gap-2">
               {[
                 { key: 'all', label: 'All Courses', count: enrolledCourses.length },
-                { key: 'in-progress', label: 'In Progress', count: enrolledCourses.filter(c => c.status === 'in-progress').length },
-                { key: 'completed', label: 'Completed', count: enrolledCourses.filter(c => c.status === 'completed').length },
-                { key: 'not-started', label: 'Not Started', count: enrolledCourses.filter(c => c.status === 'not-started').length }
+                { key: 'in-progress', label: 'In Progress', count: enrolledCourses.filter((c:Course) => c.status === 'in-progress').length },
+                { key: 'completed', label: 'Completed', count: enrolledCourses.filter((c:Course) => c.status === 'completed').length },
+                { key: 'not-started', label: 'Not Started', count: enrolledCourses.filter((c:Course) => c.status === 'not-started').length }
               ].map(({ key, label, count }) => (
                 <button
                   key={key}
@@ -427,19 +438,19 @@ const CourseDetails: React.FC<CourseDetailsProps> = () => {
             </div>
             <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
               <div className="text-2xl font-bold text-blue-600">
-                {enrolledCourses.filter(c => c.status === 'in-progress').length}
+                {enrolledCourses.filter((c:Course) => c.status === 'in-progress').length}
               </div>
               <div className="text-gray-600 text-sm">In Progress</div>
             </div>
             <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
               <div className="text-2xl font-bold text-green-600">
-                {enrolledCourses.filter(c => c.status === 'completed').length}
+                {enrolledCourses.filter((c:Course) => c.status === 'completed').length}
               </div>
               <div className="text-gray-600 text-sm">Completed</div>
             </div>
             <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
               <div className="text-2xl font-bold text-gray-600">
-                {Math.round(enrolledCourses.reduce((acc, course) => acc + course.progress, 0) / enrolledCourses.length)}%
+                {Math.round(enrolledCourses.reduce((acc:any, course:Course) => acc + course.progress, 0) / enrolledCourses.length)}%
               </div>
               <div className="text-gray-600 text-sm">Average Progress</div>
             </div>

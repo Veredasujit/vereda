@@ -9,6 +9,7 @@ type User = {
   email:string;
   createdAt:Date;
   // add more fields if your backend sends them
+  
 };
 
 interface AuthState {

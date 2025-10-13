@@ -1,4 +1,5 @@
 "use client";
+
 import React from "react";
 import Link from "next/link";
 
@@ -11,7 +12,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const menuItems = [
     { name: "Dashboard", icon: "📊", href: "/dashboard" },
     { name: "My Courses", icon: "🎓", href: "/dashboard/courses" },
-    { name: "Progress", icon: "📈", href: "/dashboard/progress" },
     { name: "Settings", icon: "⚙️", href: "/dashboard/settings" },
     { name: "Billing", icon: "💳", href: "/dashboard/billing" },
   ];
@@ -20,13 +20,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     <>
       {/* 📋 Sidebar (Desktop + Mobile) */}
       <aside
-        className={`fixed top-[64px] left-0 z-40 bg-white shadow-sm border-r border-gray-200 
-        transform transition-transform duration-300 
-        ${isOpen ? "translate-x-0" : "-translate-x-full"} 
-        lg:translate-x-0 lg:static lg:w-64 
-        w-64 h-[calc(100vh-64px)] overflow-y-auto`}
+        className={`fixed top-[64px] mt-[64px] left-0 z-40 bg-white shadow-sm border-r border-gray-200
+          transform transition-transform duration-300 ease-in-out
+          ${isOpen ? "translate-x-0" : "-translate-x-full"}
+          lg:translate-x-0 lg:static lg:w-64
+          w-64 h-[calc(100vh-64px)] overflow-y-auto`}
       >
-        <div className="p-6 ">
+        <div className="p-6">
           <nav className="space-y-2">
             {menuItems.map((item) => (
               <Link
