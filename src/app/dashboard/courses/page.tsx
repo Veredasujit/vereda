@@ -3,6 +3,11 @@ import React, { useState, useMemo } from 'react';
 import { useGetEnrollmentByIdQuery } from "@/Redux/api/enrollmentApi";
 import { useSelector } from "react-redux";
 import { RootState } from "@/Redux/store";
+import Link from 'next/link';
+import { motion } from "framer-motion";
+import { ArrowRight, BookOpen, HelpCircle, MessageCircle, PlayCircle, RefreshCw } from 'lucide-react';
+
+
 
 interface Course {
   id: string;
@@ -127,13 +132,155 @@ const CourseDetails: React.FC = () => {
   // Error state
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-6 mt-[80px]">
-        <div className="max-w-7xl mx-auto text-center">
-          <div className="text-6xl mb-4">😞</div>
-          <h3 className="text-xl font-semibold text-gray-800 mb-2">Error loading courses</h3>
-          <p className="text-gray-600">Please try again later</p>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 pt-20 px-4 sm:px-6 lg:px-8">
+  <div className=" mx-auto">
+    {/* Main Content Card */}
+    <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-white/60 overflow-hidden">
+      {/* Decorative Gradient Top Bar */}
+      <div className="h-2 bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-500"></div>
+      
+      <div className="px-6 py-12 sm:px-12 text-center">
+        
+        {/* Animated Illustration Container */}
+        <motion.div
+          initial={{ scale: 0, y: 20 }}
+          animate={{ scale: 1, y: 0 }}
+          transition={{ 
+            type: "spring", 
+            stiffness: 100,
+            damping: 15
+          }}
+          className="relative mb-8"
+        >
+          {/* Background decorative elements */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-48 h-48 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full blur-2xl opacity-60"></div>
+          </div>
+          
+          {/* Main illustration */}
+          <div className="relative">
+            <div className="text-7xl sm:text-8xl mb-2">📚</div>
+            {/* Floating elements around the book */}
+            <motion.div
+              animate={{ 
+                y: [0, -10, 0],
+                rotate: [0, 5, 0]
+              }}
+              transition={{ 
+                duration: 4,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+              className="absolute -top-2 -right-4 text-3xl"
+            >
+              📚
+            </motion.div>
+            <motion.div
+              animate={{ 
+                y: [0, -8, 0],
+                scale: [1, 1.1, 1]
+              }}
+              transition={{ 
+                duration: 3,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: 1
+              }}
+              className="absolute -bottom-4 -left-4 text-2xl"
+            >
+              ✨
+            </motion.div>
+          </div>
+        </motion.div>
+
+        {/* Text Content with Staggered Animation */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="mb-8"
+        >
+          <h3 className="text-3xl sm:text-4xl font-bold bg-gradient-to-br from-gray-800 to-gray-600 bg-clip-text text-transparent mb-4">
+            Your Learning Journey Awaits
+          </h3>
+          
+          <div className="space-y-3 max-w-2xl mx-auto">
+            <p className="text-lg text-gray-600 leading-relaxed">
+              It looks like your course library is empty. This could be because you're just getting started, 
+              or we're having trouble loading your courses.
+            </p>
+            
+            {/* Status Information */}
+            <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-6 text-sm">
+              <div className="flex items-center gap-2 text-gray-500">
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                <span>No courses enrolled yet</span>
+              </div>
+              <div className="flex items-center gap-2 text-gray-500">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span>Ready to explore learning opportunities</span>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Action Buttons */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="flex flex-col sm:flex-row justify-center items-center gap-4"
+        >
+          {/* Primary CTA */}
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Link href="/view-courses">
+              <button className="group relative px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5">
+                {/* Shine effect on hover */}
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                
+                <span className="relative flex items-center gap-3">
+                  <BookOpen className="w-5 h-5" />
+                  Explore Our Course Catalog
+                  <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                </span>
+              </button>
+            </Link>
+          </motion.div>
+
+          {/* Secondary Action */}
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <button 
+              onClick={() => window.location.reload()}
+              className="px-6 py-3 border-2 border-gray-300 text-gray-700 font-medium rounded-xl hover:border-gray-400 hover:bg-gray-50 transition-all duration-200 flex items-center gap-2"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Refresh Page
+            </button>
+          </motion.div>
+        </motion.div>
+
+        {/* Additional Help Section */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.7 }}
+          className="mt-12 pt-8 border-t border-gray-200/60"
+        >
+          <p className="text-gray-500 text-sm mb-4">Need help getting started?</p>
+          
+        </motion.div>
       </div>
+    </div>
+
+    
+    </div>
+   </div>
     );
   }
 

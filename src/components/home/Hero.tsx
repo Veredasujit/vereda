@@ -2,6 +2,7 @@
 
 import { motion, Variants } from 'framer-motion';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useInView } from 'react-intersection-observer';
 
 export default function Hero() {
@@ -142,22 +143,25 @@ export default function Hero() {
             variants={textVariants}
           >
             <motion.button
-              className="group relative bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold py-4 px-10 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden"
+              className="group relative cursor-pointer bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold py-4 px-10 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden"
               variants={buttonVariants}
               whileHover="hover"
               whileTap="tap"
             >
+            <Link href="/login">
               <span className="relative z-10 flex items-center gap-2">
                 Get Started Free
                 <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
               </span>
+            </Link>
               <div className="absolute inset-0 bg-gradient-to-r from-blue-700 to-indigo-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </motion.button>
 
+            <Link href="/contact">
             <motion.button
-              className="group border-2 border-blue-600 text-blue-600 font-semibold py-4 px-10 rounded-2xl hover:bg-blue-600 hover:text-white transition-all duration-300 flex items-center gap-2"
+              className="group border-2 cursor-pointer border-blue-600 text-blue-600 font-semibold py-4 px-10 rounded-2xl hover:bg-blue-600 hover:text-white transition-all duration-300 flex items-center gap-2"
               variants={buttonVariants}
               whileHover="hover"
               whileTap="tap"
@@ -167,6 +171,7 @@ export default function Hero() {
               </svg>
               Request Call Back
             </motion.button>
+              </Link>
           </motion.div>
         </motion.div>
 

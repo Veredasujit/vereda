@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function AboutVereda() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 py-16 px-4 sm:px-6 lg:px-8">
@@ -118,10 +120,12 @@ export default function AboutVereda() {
 
             {/* CTA Button */}
             <div className="pt-4">
-              <button className="group relative bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-2xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 overflow-hidden">
+              <Link href="/login">
+              <button className="group cursor-pointer relative bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-2xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 overflow-hidden">
                 <span className="relative z-10">Start Your Journey Today</span>
                 <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </button>
+              </Link>
             </div>
           </div>
         </div>

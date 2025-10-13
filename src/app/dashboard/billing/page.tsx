@@ -21,12 +21,14 @@ import {
   Eye,
   RefreshCw,
   AlertCircle,
-  MoreVertical
+  MoreVertical,
+  BookOpen
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useGetPaymentsByUserIdQuery } from "@/Redux/api/billingApi";
 import { useSelector } from "react-redux";
 import { RootState } from "@/Redux/store";
+import Link from "next/link";
 
 type Payment = {
   id: string;
@@ -157,27 +159,88 @@ export default function PaymentHistoryPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30 pt-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Card className="border-destructive/50 bg-white/80 backdrop-blur-sm max-w-2xl mx-auto">
-            <CardContent className="pt-6 text-center">
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-4"
-              >
-                <AlertCircle className="w-8 h-8 text-destructive" />
-              </motion.div>
-              <h3 className="text-lg font-semibold text-destructive mb-2">Unable to Load Payments</h3>
-              <p className="text-muted-foreground mb-4">There was an error loading your payment history.</p>
-              <Button onClick={refetch} className="gap-2">
-                <RefreshCw className="w-4 h-4" />
-                Try Again
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-100/20 pt-20">
+      <div className=" mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <Card className="border-0 bg-white/90 backdrop-blur-xl shadow-xl rounded-2xl overflow-hidden">
+      {/* A subtle decorative accent bar at the top */}
+      <div className="h-1 bg-gradient-to-r from-rose-400/0 via-rose-400/50 to-rose-400/0"></div>
+
+      <CardContent className="pt-12 pb-8 px-6 text-center">
+        {/* Enhanced Illustration Container */}
+        <motion.div
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 120, delay: 0.1 }}
+          className="mx-auto mb-6 relative"
+        >
+          {/* Background Blob for the illustration */}
+          <div className="absolute inset-0 bg-gradient-to-br from-rose-100 to-rose-200/50 rounded-full blur-md scale-110"></div>
+          {/* Main Icon/Illustration */}
+          <div className="relative w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto border border-rose-200 shadow-sm">
+            {/* A more complex/engaging SVG illustration */}
+            <svg className="w-12 h-12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 16V12M12 8H12.01M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12Z" stroke="#F43F5E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+        </motion.div>
+
+        {/* Improved Text Hierarchy */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="flex flex-col justify-center items-center "
+        >
+          {/* Primary Title */}
+          <h3 className="text-2xl font-bold text-gray-900 mb-2">
+            No Payment History Found
+          </h3>
+
+          {/* Secondary, Explanatory Text */}
+          <p className="text-gray-600 mb-4   leading-relaxed">
+            We couldn't find any past payments. This might be because you're new here or there was a temporary issue.
+          </p>
+
+          {/* Separated "Empty State" Message */}
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6 text-left">
+            <p className="text-amber-800 text-sm font-medium flex items-start">
+              <svg className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"></path></svg>
+              <span>You haven’t purchased any courses yet. Your learning journey is just a click away!</span>
+            </p>
+          </div>
+        </motion.div>
+
+        {/* Action Buttons with Staggered Animation */}
+        <motion.div
+          className="flex flex-col sm:flex-row justify-center gap-3"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3, staggerChildren: 0.1 }}
+        >
+          <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+            <Button
+              onClick={refetch}
+              variant="outline"
+              className="gap-2 cursor-pointer border-gray-300 text-gray-700 hover:bg-gray-50 transition-all duration-200"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Try Again
+            </Button>
+          </motion.div>
+
+          <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+            <Link href="/view-courses" passHref>
+              <Button className="gap-2 cursor-pointer bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-200">
+                <BookOpen className="w-4 h-4" />
+                Explore Our Courses
               </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+            </Link>
+          </motion.div>
+        </motion.div>
+      </CardContent>
+    </Card>
+    </div>
+  </div>
     );
   }
 
