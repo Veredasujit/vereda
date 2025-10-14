@@ -1,6 +1,7 @@
 'use client';
 
 import { motion, Variants } from 'framer-motion';
+import Image from 'next/image';
 import Link from 'next/link';
 
 interface Course {
@@ -108,13 +109,20 @@ export default function FeaturedCourses() {
               className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden group border border-gray-100"
             >
               {/* Course Image */}
-              <div className="w-full h-88 overflow-hidden">
-                <img
-                  src={course.imageURL}
-                  alt={course.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-              </div>
+              <div className="w-full overflow-hidden rounded-2xl">
+  <div className="relative w-full aspect-[4/3] group"> {/* keeps a nice responsive ratio */}
+    <Image
+      src={course.imageURL}
+      alt={course.title}
+      fill
+      sizes="(max-width: 640px) 100vw,
+             (max-width: 1024px) 50vw,
+             33vw"
+      className="object-cover transition-transform duration-500 group-hover:scale-105"
+      priority
+    />
+  </div>
+</div>
 
               
 

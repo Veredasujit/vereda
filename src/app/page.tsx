@@ -9,8 +9,8 @@ import Navbar from "@/components/navbar/Navbar";
 export default function Home() {
   return (
     < >
-    <Nav/>
-        <Navbar/>
+      <Nav/>
+      <Navbar/>
       <Hero/>
       <FeaturedCourses/>
       <AboutVereda/>

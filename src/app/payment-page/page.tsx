@@ -119,7 +119,7 @@ const PaymentPage = () => {
               userId: enrollmentData.user.id,
               amount: enrollmentData.course.price
             }).unwrap();
-
+              
             if (verifyResponse.success) {
               showMessage("Payment successful! Redirecting to course...", "success");
               setTimeout(() => {
