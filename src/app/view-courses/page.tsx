@@ -1,12 +1,12 @@
 'use client';
 
 import { motion, Variants } from 'framer-motion';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Search, Filter, X, Star, Clock, Users, BookOpen, Zap, Smartphone, Brain } from 'lucide-react';
-import { useGetAllCoursesQuery } from '../../Redux/api/coursesApi'; // Update the import path
+import { useGetAllCoursesQuery } from '../../Redux/api/coursesApi';
 import { useSelector } from "react-redux";
 import { RootState } from "@/Redux/store";
-import { redirect,useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 // Interface based on your actual API response
 interface Course {
@@ -14,8 +14,9 @@ interface Course {
   title: string;
   courseImageURL: string;
   description: string;
-  price: string; // Note: price comes as string from API
+  price: string;
   instructorId: string;
+  instructorName: string;
   courseDuration: string;
   status: 'coming_soon' | 'live' | 'expired';
   availableSeat: number;
@@ -23,13 +24,13 @@ interface Course {
   usersLearn: number;
   createdAt: string;
   updatedAt: string;
+  level: 'Beginner' | 'Intermediate' | 'Advanced';
+  totalSeat: number;
 }
 
 // Extended interface for UI
 interface UICourse extends Course {
-  // Derived fields for UI
-  category: 'Flutter' | 'AI & Machine Learning';
-  level: 'Beginner' | 'Intermediate' | 'Advanced';
+  category: 'Web Development' | 'Mobile Development' | 'AI & Machine Learning';
   tags: string[];
   originalPrice: number;
   discountedPrice: number;
@@ -43,15 +44,21 @@ interface UICourse extends Course {
   popularity: 'High' | 'Medium' | 'Low';
 }
 
-// Helper functions - defined outside the component
-const determineCategory = (course: Course): 'Flutter' | 'AI & Machine Learning' => {
+// Helper functions
+const determineCategory = (course: Course): 'Web Development' | 'Mobile Development' | 'AI & Machine Learning' => {
   const title = course.title.toLowerCase();
   const description = course.description.toLowerCase();
   
   if (title.includes('flutter') || description.includes('flutter') || 
       title.includes('mobile') || description.includes('mobile') ||
       title.includes('dart')) {
-    return 'Flutter';
+    return 'Mobile Development';
+  }
+  
+  if (title.includes('javascript') || description.includes('javascript') ||
+      title.includes('web') || description.includes('web') ||
+      title.includes('full stack') || description.includes('full stack')) {
+    return 'Web Development';
   }
   
   if (title.includes('ai') || title.includes('machine learning') || title.includes('ml') ||
@@ -61,25 +68,7 @@ const determineCategory = (course: Course): 'Flutter' | 'AI & Machine Learning' 
     return 'AI & Machine Learning';
   }
   
-  // Default based on common patterns in your data
-  return 'Flutter';
-};
-
-const determineLevel = (course: Course): 'Beginner' | 'Intermediate' | 'Advanced' => {
-  const title = course.title.toLowerCase();
-  const description = course.description.toLowerCase();
-  
-  if (title.includes('advanced') || description.includes('advanced') ||
-      description.includes('deep dive') || description.includes('mastery')) {
-    return 'Advanced';
-  }
-  
-  if (title.includes('intermediate') || description.includes('intermediate') ||
-      title.includes('pro') || description.includes('proficient')) {
-    return 'Intermediate';
-  }
-  
-  return 'Beginner';
+  return 'Web Development';
 };
 
 const getCourseTags = (course: Course): string[] => {
@@ -110,15 +99,13 @@ const getCourseTags = (course: Course): string[] => {
   }
   
   // Add level-based tags
-  const level = determineLevel(course);
-  tags.push(level);
+  tags.push(course.level);
   
   return tags.length > 0 ? tags : ['Programming', 'Development'];
 };
 
 const calculateOriginalPrice = (discountedPrice: number): number => {
-  // Add 30-50% to create an "original price"
-  const multiplier = 1 + (Math.random() * 0.5) + 0.3; // 30-80% markup
+  const multiplier = 1 + (Math.random() * 0.5) + 0.3;
   return Math.round(discountedPrice * multiplier);
 };
 
@@ -135,22 +122,10 @@ const mapStatusToBatchStatus = (status: string): 'Coming Soon' | 'Ongoing' | 'St
   }
 };
 
-const getInstructorName = (instructorId: string): string => {
-  // You'll need to implement this based on your instructor data
-  // For now, return a placeholder
-  const instructorNames = [
-    'Himanshu Kumar', 
-    'Alex Johnson', 
-    'Dr. Sarah Chen', 
-    'Emily Davis',
-    'Raj Patel'
-  ];
-  return instructorNames[Math.floor(Math.random() * instructorNames.length)];
-};
-
 const getCategoryIcon = (category: string): string => {
   switch (category) {
-    case 'Flutter': return '📱';
+    case 'Web Development': return '💻';
+    case 'Mobile Development': return '📱';
     case 'AI & Machine Learning': return '🤖';
     default: return '📚';
   }
@@ -158,7 +133,8 @@ const getCategoryIcon = (category: string): string => {
 
 const getCategoryGradient = (category: string): string => {
   switch (category) {
-    case 'Flutter': return 'from-green-500 to-teal-600';
+    case 'Web Development': return 'from-blue-500 to-purple-600';
+    case 'Mobile Development': return 'from-green-500 to-teal-600';
     case 'AI & Machine Learning': return 'from-purple-500 to-indigo-600';
     default: return 'from-blue-500 to-cyan-600';
   }
@@ -172,13 +148,14 @@ const calculatePopularity = (course: Course): 'High' | 'Medium' | 'Low' => {
 
 export default function ViewCourses() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<'All' | 'Flutter' | 'AI & Machine Learning'>('All');
+  const [selectedCategory, setSelectedCategory] = useState<'All' | 'Web Development' | 'Mobile Development' | 'AI & Machine Learning'>('All');
   const [selectedLevel, setSelectedLevel] = useState('All');
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 50000]);
   const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState('popular');
   const [selectedStatus, setSelectedStatus] = useState<'All' | 'coming_soon' | 'live' | 'expired'>('All');
-const user = useSelector((state: RootState) => state.auth.user);
+  
+  const user = useSelector((state: RootState) => state.auth.user);
   const { data: coursesData, isLoading, error } = useGetAllCoursesQuery();
   const router = useRouter();
 
@@ -193,36 +170,29 @@ const user = useSelector((state: RootState) => state.auth.user);
     
     console.log("Processing courses:", coursesData);
 
-    return coursesData.map((course: Course) => {
+    return coursesData.map((course: Course): UICourse => {
       // Determine category based on title or description
       const category = determineCategory(course);
-      
-      // Determine level based on course content
-      const level = determineLevel(course);
       
       // Get tags based on course content
       const tags = getCourseTags(course);
       
-      // Calculate pricing (you might want to adjust this logic)
+      // Calculate pricing
       const discountedPrice = parseFloat(course.price);
       const originalPrice = calculateOriginalPrice(discountedPrice);
       const discountPercentage = calculateDiscountPercentage(originalPrice, discountedPrice);
       
-      // Calculate total seats (available + enrolled)
-      const totalSeats = course.availableSeat + course.usersLearn;
-      
       return {
         ...course,
         category,
-        level,
         tags,
         originalPrice,
         discountedPrice,
         discountPercentage,
         programName: course.title,
         batchStatus: mapStatusToBatchStatus(course.status),
-        instructor: { name: getInstructorName(course.instructorId) },
-        totalSeats,
+        instructor: { name: course.instructorName }, // Use actual instructor name from API
+        totalSeats: course.totalSeat, // Use totalSeat from API
         icon: getCategoryIcon(category),
         bgGradient: getCategoryGradient(category),
         popularity: calculatePopularity(course)
@@ -230,17 +200,12 @@ const user = useSelector((state: RootState) => state.auth.user);
     });
   }, [coursesData]);
 
-   // Handle enrollment button click
+  // Handle enrollment button click
   const handleEnrollClick = (course: UICourse) => {
-    // Check if user is logged in
-      if (!user) {
-    router.push('/login?redirect=/courses');
-    return;
-  }
-
-  if (!user) {
-    return <p>Redirecting to login...</p>; // optional placeholder
-  }
+    if (!user) {
+      router.push('/login?redirect=/courses');
+      return;
+    }
 
     // Prepare course and user data for payment page
     const enrollmentData = {
@@ -253,26 +218,22 @@ const user = useSelector((state: RootState) => state.auth.user);
         instructor: course.instructor.name,
         duration: course.courseDuration,
         image: course.courseImageURL,
-        category: course.category
+        category: course.category,
+        level: course.level
       },
       user: {
         id: user.id,
         name: user.name,
         email: user.email,
-        profileURL:user.profileURL,
-        phone:user.phone
-        // Add other user details you need
+        profileURL: user.profileURL,
+        phone: user.phone
       }
     };
 
-    // Navigate to payment page with data
     router.push(`/payment-page?data=${encodeURIComponent(JSON.stringify(enrollmentData))}`);
-    
-
   };
 
-
-  const categories = ['All', 'Flutter', 'AI & Machine Learning'];
+  const categories = ['All', 'Web Development', 'Mobile Development', 'AI & Machine Learning'];
   const levels = ['All', 'Beginner', 'Intermediate', 'Advanced'];
   const statuses = ['All', 'coming_soon', 'live', 'expired'] as const;
 
@@ -361,12 +322,14 @@ const user = useSelector((state: RootState) => state.auth.user);
 
   const getCategoryIconComponent = (category: string) => {
     switch (category) {
-      case 'Flutter':
+      case 'Web Development':
+        return <Zap className="w-5 h-5" />;
+      case 'Mobile Development':
         return <Smartphone className="w-5 h-5" />;
       case 'AI & Machine Learning':
         return <Brain className="w-5 h-5" />;
       default:
-        return <Zap className="w-5 h-5" />;
+        return <BookOpen className="w-5 h-5" />;
     }
   };
 
@@ -432,22 +395,36 @@ const user = useSelector((state: RootState) => state.auth.user);
             Specialized Programs
           </h2>
           <h3 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            Flutter & AI Courses
+            All Courses
           </h3>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-6">
-            Master mobile development with Flutter and dive into Artificial Intelligence with our expert-led programs
+            Explore our comprehensive range of courses in Web Development, Mobile Development, and AI & Machine Learning
           </p>
-          <div className="w-32 h-1.5 bg-gradient-to-r from-green-500 to-purple-600 rounded-full mx-auto"></div>
+          <div className="w-32 h-1.5 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mx-auto"></div>
         </motion.div>
 
         {/* Quick Category Stats */}
         <motion.div
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
+          className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
+          <div className="bg-white rounded-2xl p-6 shadow-lg border border-blue-200">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Zap className="w-6 h-6 text-blue-600" />
+              </div>
+              <div>
+                <h4 className="text-2xl font-bold text-gray-900">
+                  {courses.filter(c => c.category === 'Web Development').length}
+                </h4>
+                <p className="text-gray-600">Web Development</p>
+              </div>
+            </div>
+          </div>
+          
           <div className="bg-white rounded-2xl p-6 shadow-lg border border-green-200">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-green-100 rounded-lg">
@@ -455,9 +432,9 @@ const user = useSelector((state: RootState) => state.auth.user);
               </div>
               <div>
                 <h4 className="text-2xl font-bold text-gray-900">
-                  {courses.filter(c => c.category === 'Flutter').length}
+                  {courses.filter(c => c.category === 'Mobile Development').length}
                 </h4>
-                <p className="text-gray-600">Flutter Courses</p>
+                <p className="text-gray-600">Mobile Development</p>
               </div>
             </div>
           </div>
@@ -476,10 +453,10 @@ const user = useSelector((state: RootState) => state.auth.user);
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-blue-200">
+          <div className="bg-white rounded-2xl p-6 shadow-lg border border-orange-200">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Users className="w-6 h-6 text-blue-600" />
+              <div className="p-2 bg-orange-100 rounded-lg">
+                <Users className="w-6 h-6 text-orange-600" />
               </div>
               <div>
                 <h4 className="text-2xl font-bold text-gray-900">
@@ -506,7 +483,7 @@ const user = useSelector((state: RootState) => state.auth.user);
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   type="text"
-                  placeholder="Search Flutter or AI courses..."
+                  placeholder="Search courses by title, description, or tags..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
@@ -564,7 +541,7 @@ const user = useSelector((state: RootState) => state.auth.user);
                 {/* Category Filter */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Technology
+                    Category
                   </label>
                   <select
                     value={selectedCategory}
@@ -679,7 +656,9 @@ const user = useSelector((state: RootState) => state.auth.user);
                 onClick={() => setSelectedCategory(category as any)}
                 className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium transition-colors ${
                   selectedCategory === category
-                    ? category === 'Flutter'
+                    ? category === 'Web Development'
+                      ? 'bg-blue-100 text-blue-800 border border-blue-300'
+                      : category === 'Mobile Development'
                       ? 'bg-green-100 text-green-800 border border-green-300'
                       : 'bg-purple-100 text-purple-800 border border-purple-300'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -731,8 +710,10 @@ const user = useSelector((state: RootState) => state.auth.user);
                   
                   {/* Category Ribbon */}
                   <div className={`absolute bottom-4 left-4 ${
-                    course.category === 'Flutter' 
-                      ? 'bg-green-500' 
+                    course.category === 'Web Development' 
+                      ? 'bg-blue-500' 
+                      : course.category === 'Mobile Development'
+                      ? 'bg-green-500'
                       : 'bg-purple-500'
                   } text-white px-3 py-1 rounded-r-lg text-sm font-semibold`}>
                     {course.category}
@@ -746,7 +727,11 @@ const user = useSelector((state: RootState) => state.auth.user);
                     <div className="flex items-center gap-2">
                       {getCategoryIconComponent(course.category)}
                       <span className={`text-sm font-semibold ${
-                        course.category === 'Flutter' ? 'text-green-600' : 'text-purple-600'
+                        course.category === 'Web Development' 
+                          ? 'text-blue-600' 
+                          : course.category === 'Mobile Development'
+                          ? 'text-green-600'
+                          : 'text-purple-600'
                       }`}>
                         {course.category}
                       </span>
@@ -770,8 +755,10 @@ const user = useSelector((state: RootState) => state.auth.user);
                   {/* Instructor */}
                   <div className="flex items-center gap-3 mb-4">
                     <div className={`w-8 h-8 bg-gradient-to-r ${
-                      course.category === 'Flutter' 
-                        ? 'from-green-500 to-teal-600' 
+                      course.category === 'Web Development' 
+                        ? 'from-blue-500 to-purple-600' 
+                        : course.category === 'Mobile Development'
+                        ? 'from-green-500 to-teal-600'
                         : 'from-purple-500 to-indigo-600'
                     } rounded-full flex items-center justify-center text-white text-xs font-bold`}>
                       {course.instructor.name
@@ -849,9 +836,11 @@ const user = useSelector((state: RootState) => state.auth.user);
                       </span>
                     </div>
                     <motion.button
-                    onClick={() => handleEnrollClick(course)}
+                      onClick={() => handleEnrollClick(course)}
                       className={`font-semibold py-2 px-6 rounded-xl hover:shadow-lg transition-all duration-300 ${
-                        course.category === 'Flutter'
+                        course.category === 'Web Development'
+                          ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white'
+                          : course.category === 'Mobile Development'
                           ? 'bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white'
                           : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white'
                       }`}
@@ -885,13 +874,13 @@ const user = useSelector((state: RootState) => state.auth.user);
               </h3>
               <p className="text-gray-600 mb-6">
                 {courses.length === 0 
-                  ? 'Check back later for new Flutter and AI courses.' 
+                  ? 'Check back later for new courses.' 
                   : 'Try adjusting your search criteria or filters to find more courses.'}
               </p>
               {courses.length > 0 && (
                 <button
                   onClick={clearFilters}
-                  className="bg-gradient-to-r from-green-600 to-purple-600 text-white font-semibold py-3 px-8 rounded-xl hover:from-green-700 hover:to-purple-700 transition-colors"
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold py-3 px-8 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-colors"
                 >
                   Clear All Filters
                 </button>
