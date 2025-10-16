@@ -95,7 +95,7 @@ const PaymentPage = () => {
 
     try {
       const orderResponse = await createOrder({ 
-        amount: enrollmentData.course.price * 100,
+        amount: enrollmentData.course.price,
         enrollmentId: enrollmentData.course.id,
         userId: enrollmentData.user.id
       }).unwrap();
