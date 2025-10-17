@@ -1,11 +1,11 @@
-// app/dashboard/layout.tsx (server layout)
-import React, { ReactNode } from "react";
-import DashboardClientLayout from "./DashboardClientLayout";
+// app/layout.tsx
+import Navbar from "@/components/navbar/Navbar";
 import { Metadata } from "next";
+import React from "react";
 
 
 export const metadata: Metadata = {
-  title: "Dashboard | Vereda Digital Learning",
+  title: "Payment | Vereda Digital Learning",
   description:
     "Learn about Vereda Digital Learning — empowering learners through modern tech education, skill-based training, and real-world career connections. Meet our leadership team and discover our mission, values, and mentor associates.",
   keywords: [
@@ -28,10 +28,23 @@ export const metadata: Metadata = {
   
 };
 
-interface LayoutProps {
-  children: ReactNode;
-}
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <head>
+        {/* You can add custom meta tags or scripts here */}
+      </head>
+      <body >
+        <Navbar/>
 
-export default function DashboardLayout({ children }: LayoutProps) {
-  return <DashboardClientLayout>{children}</DashboardClientLayout>;
+        <main className="">{children}</main>
+
+       
+      </body>
+    </html>
+  );
 }
